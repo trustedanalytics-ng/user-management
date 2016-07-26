@@ -15,8 +15,6 @@
  */
 package org.trustedanalytics.user.invite.config;
 
-import static org.springframework.security.oauth2.provider.token.AccessTokenConverter.SCOPE;
-
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,6 +26,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.springframework.security.oauth2.provider.token.AccessTokenConverter.SCOPE;
 
 public class ScopeAuthoritiesTokenConverter extends DefaultUserAuthenticationConverter {
 

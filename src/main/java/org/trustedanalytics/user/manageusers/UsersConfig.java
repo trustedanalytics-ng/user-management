@@ -15,38 +15,30 @@
  */
 package org.trustedanalytics.user.manageusers;
 
-import static java.util.Collections.singletonList;
-import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
-
-import org.springframework.context.annotation.Profile;
-import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
-import org.trustedanalytics.cloud.auth.AuthTokenRetriever;
-import org.trustedanalytics.cloud.auth.HeaderAddingHttpInterceptor;
-import org.trustedanalytics.cloud.cc.FeignClient;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.customizations.OAuth2RequestInterceptor;
-import org.trustedanalytics.cloud.uaa.UaaClient;
-import org.trustedanalytics.cloud.uaa.UaaOperations;
-import org.trustedanalytics.user.common.OAuth2PriviligedInterceptor;
-import org.trustedanalytics.user.invite.EmailOrgUserInvitationService;
-import org.trustedanalytics.user.invite.InvitationsService;
-import org.trustedanalytics.user.invite.MessageService;
-import org.trustedanalytics.user.invite.OrgUserInvitationService;
-import org.springframework.web.client.RestTemplate;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResourceDetails;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.springframework.web.client.RestOperations;
-import org.thymeleaf.TemplateEngine;
+import org.springframework.web.client.RestTemplate;
+import org.trustedanalytics.auth.AuthTokenRetriever;
+import org.trustedanalytics.auth.HeaderAddingHttpInterceptor;
+import org.trustedanalytics.uaa.UaaClient;
+import org.trustedanalytics.uaa.UaaOperations;
+import org.trustedanalytics.user.common.OAuth2PriviligedInterceptor;
+import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+
+import static java.util.Collections.singletonList;
+import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 @Profile("cloud")
 @Configuration
@@ -66,30 +58,14 @@ public class UsersConfig {
     }
 
     @Bean
-    protected CcOperations ccPrivilegedClient(OAuth2PriviligedInterceptor oauth2PrivilegedInterceptor) {
-
-        return new FeignClient(apiBaseUrl,
-                builder -> builder
-                        .requestInterceptor(oauth2PrivilegedInterceptor));
-    }
-
-    @Bean
     protected UaaOperations uaaPrivilegedClient(RestOperations clientRestTemplate) {
-        return new UaaClient(clientRestTemplate, uaaBaseUrl);
-    }
-
-    @Bean
-    @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
-    protected CcOperations ccClient() {
-        return new FeignClient(apiBaseUrl,
-                builder -> builder
-                        .requestInterceptor(new OAuth2RequestInterceptor(getAccessToken())));
+        return new UaaClient(uaaBaseUrl, clientRestTemplate);
     }
 
     @Bean
     @Scope(value = SCOPE_REQUEST, proxyMode = TARGET_CLASS)
     protected UaaOperations uaaClient(RestTemplate userRestTemplate) {
-        return new UaaClient(setAccessToken(userRestTemplate), uaaBaseUrl);
+        return new UaaClient(uaaBaseUrl, setAccessToken(userRestTemplate));
     }
 
     private OAuth2Authentication getAuthentication() {
@@ -115,19 +91,17 @@ public class UsersConfig {
     }
 
     @Bean
-    protected UsersService usersService(CcOperations ccClient,
-                                        UaaOperations uaaClient,
+    protected UsersService usersService(UaaOperations uaaClient,
                                         InvitationsService invitationsService,
                                         AccessInvitationsService accessInvitationsService) {
-        return new CfUsersService(ccClient, uaaClient, invitationsService, accessInvitationsService);
+        return new CfUsersService(uaaClient, invitationsService, accessInvitationsService);
     }
 
     @Bean
-    protected UsersService priviledgedUsersService(CcOperations ccPrivilegedClient,
-                                                   UaaOperations uaaPrivilegedClient,
+    protected UsersService priviledgedUsersService(UaaOperations uaaPrivilegedClient,
                                                    InvitationsService invitationsService,
                                                    AccessInvitationsService accessInvitationsService) {
-        return new CfUsersService(ccPrivilegedClient,
+        return new CfUsersService(
                 uaaPrivilegedClient,
                 invitationsService,
                 accessInvitationsService);
@@ -137,11 +111,5 @@ public class UsersConfig {
     @Bean
     protected PasswordGenerator passwordGenerator() {
         return new RandomPasswordGenerator();
-    }
-
-    @Bean
-    protected OrgUserInvitationService orgUserInvitationService(MessageService messageService,
-                                                                TemplateEngine templateEngine) {
-        return new EmailOrgUserInvitationService(messageService, templateEngine);
     }
 }

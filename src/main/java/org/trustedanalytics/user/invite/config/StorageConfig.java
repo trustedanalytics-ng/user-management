@@ -48,7 +48,7 @@ public class StorageConfig {
 
         @Bean
         KeyValueStore<SecurityCode> inMemorySecurityCodeStore() {
-            return new InMemoryStore<SecurityCode>();
+            return new InMemoryStore<>();
         }
 
         @Bean
@@ -62,7 +62,7 @@ public class StorageConfig {
     public static class InMemoryInvitationsStorageConfig {
         @Bean
         KeyValueStore<AccessInvitations> inMemoryAccessInvitationsStore() {
-            return new InMemoryStore<AccessInvitations>();
+            return new InMemoryStore<>();
         }
 
         @Bean
@@ -105,7 +105,7 @@ public class StorageConfig {
 
         @Bean
         KeyValueStore<SecurityCode> redisSecurityCodeStore( RedisOperations<String, SecurityCode> redisTemplate) {
-            return new RedisStore<SecurityCode>(redisTemplate, "security-codes");
+            return new RedisStore<>(redisTemplate, "security-codes");
         }
 
         @Bean
@@ -134,7 +134,7 @@ public class StorageConfig {
         @Bean
         public KeyValueStore<AccessInvitations> redisAccessInvitationsStore(
                 RedisOperations<String, AccessInvitations> redisAccessInvitationsTemplate) {
-            return new RedisStore<AccessInvitations>(redisAccessInvitationsTemplate, "access-invitations");
+            return new RedisStore<>(redisAccessInvitationsTemplate, "access-invitations");
         }
 
         @Bean

@@ -15,13 +15,12 @@
  */
 package org.trustedanalytics.user.manageusers.cf;
 
+import org.junit.Test;
+import org.trustedanalytics.user.manageusers.RandomPasswordGenerator;
+
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertThat;
-
-import org.trustedanalytics.user.manageusers.RandomPasswordGenerator;
-
-import org.junit.Test;
 
 public class RandomPasswordGeneratorTest {
 

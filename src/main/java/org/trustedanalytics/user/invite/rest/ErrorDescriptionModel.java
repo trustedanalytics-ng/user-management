@@ -15,8 +15,11 @@
  */
 package org.trustedanalytics.user.invite.rest;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@Getter
+@AllArgsConstructor
 public class ErrorDescriptionModel {
     enum State {
         NEW,
@@ -24,14 +27,6 @@ public class ErrorDescriptionModel {
         ERROR
     }
 
-    @Getter
-    final String details;
-
-    @Getter
     final State state;
-
-    public ErrorDescriptionModel(State state, String details) {
-        this.details = details;
-        this.state = state;
-    }
+    final String details;
 }

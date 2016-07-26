@@ -15,10 +15,8 @@
  */
 package org.trustedanalytics.user.invite.access;
 
-import org.trustedanalytics.cloud.cc.api.manageusers.Role;
-
 import lombok.Getter;
-import lombok.Setter;
+import org.trustedanalytics.user.model.OrgRole;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,37 +26,14 @@ import java.util.UUID;
 
 public class AccessInvitations {
 
-    @Getter @Setter
-    private boolean eligibleToCreateOrg;
-
     @Getter
-    private Map<UUID, Set<Role>> orgAccessInvitations;
-
-    @Getter
-    private Map<UUID, Set<Role>> spaceAccessInvitations;
-
+    private Map<UUID, Set<OrgRole>> orgAccessInvitations;
 
     public AccessInvitations() {
-        //Empty constructor is required by Redis Serializer to properly deserialize object
-    }
-
-    public AccessInvitations(boolean eligibleToCreateOrg) {
-        this.eligibleToCreateOrg = eligibleToCreateOrg;
         this.orgAccessInvitations = new HashMap<>();
-        this.spaceAccessInvitations = new HashMap<>();
     }
 
-    public void addOrgAccessInvitation(UUID uuid, Set<Role> roles) {
+    public void addOrgAccessInvitation(UUID uuid, Set<OrgRole> roles) {
         this.orgAccessInvitations.put(uuid, roles);
-    }
-
-    public void addSpaceAccessInvitation(UUID uuid, Set<Role> roles) {
-        this.spaceAccessInvitations.put(uuid, roles);
-    }
-
-    public void clearAccessInvitations() {
-        this.orgAccessInvitations.clear();
-        this.spaceAccessInvitations.clear();
-        this.eligibleToCreateOrg = false;
     }
 }

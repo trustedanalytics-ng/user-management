@@ -15,21 +15,22 @@
  */
 package org.trustedanalytics.user.current;
 
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.PUT;
-
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.trustedanalytics.cloud.uaa.ChangePasswordRequest;
-import org.trustedanalytics.cloud.uaa.UaaOperations;
-import org.trustedanalytics.user.common.UserPasswordValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.uaa.ChangePasswordRequest;
+import org.trustedanalytics.uaa.UaaOperations;
+import org.trustedanalytics.user.common.UserPasswordValidator;
+import org.trustedanalytics.user.model.UserModel;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 @RestController
 @RequestMapping("/rest/users/current")
@@ -57,11 +58,7 @@ public class CurrentUserController {
     })
     @RequestMapping(method = RequestMethod.GET)
     public UserModel getUser(Authentication auth) {
-        UserModel user = new UserModel();
-        user.setEmail(auth.getName());
-        user.setRole(detailsFinder.getRole(auth));
-
-        return user;
+        return new UserModel(auth.getName(), detailsFinder.getRole(auth));
     }
 
     @ApiOperation(

@@ -13,11 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.common;
+package org.trustedanalytics.user.model;
 
-
-public class InvitationPendingException extends RuntimeException {
-    public InvitationPendingException(String message) {
-        super(message);
-    }
+public enum UserRole {
+    ADMIN,
+    USER;
 }

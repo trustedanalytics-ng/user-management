@@ -15,11 +15,11 @@
  */
 package org.trustedanalytics.user.current;
 
-import org.trustedanalytics.user.invite.config.AccessTokenDetails;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.trustedanalytics.user.invite.config.AccessTokenDetails;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Collection;
 import java.util.UUID;

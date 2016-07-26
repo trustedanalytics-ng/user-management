@@ -15,17 +15,13 @@
  */
 package org.trustedanalytics.user.invite;
 
-import org.trustedanalytics.user.common.OrgAndUserGuids;
-
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-
 public interface InvitationsService {
     String sendInviteEmail(String email, String currentUser);
     String resendInviteEmail(String email, String currentUser);
-    Optional<OrgAndUserGuids> createUser(String username, String password, String orgName);
     Optional<UUID> createUser(String username, String password);
     boolean userExists(String username);
     Set<String> getPendingInvitationsEmails();

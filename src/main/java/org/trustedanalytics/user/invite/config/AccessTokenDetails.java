@@ -15,19 +15,16 @@
  */
 package org.trustedanalytics.user.invite.config;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.UUID;
 
+@AllArgsConstructor
 public class AccessTokenDetails {
 
+    @Getter
     private UUID userGuid;
-
-    public AccessTokenDetails(UUID userGuid) {
-        this.userGuid = userGuid;
-    }
-
-    public UUID getUserGuid() {
-        return userGuid;
-    }
 
     @Override
     public String toString() {

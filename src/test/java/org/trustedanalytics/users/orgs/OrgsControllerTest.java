@@ -16,19 +16,6 @@
 package org.trustedanalytics.users.orgs;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.trustedanalytics.cloud.cc.api.*;
-import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.invite.config.AccessTokenDetails;
-import org.trustedanalytics.user.manageusers.OrgNameRequest;
-import org.trustedanalytics.user.orgs.Organization;
-import org.trustedanalytics.user.orgs.OrgsController;
-
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,18 +23,29 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import rx.Observable;
+import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.invite.config.AccessTokenDetails;
+import org.trustedanalytics.user.manageusers.OrgNameRequest;
+import org.trustedanalytics.user.model.Org;
+import org.trustedanalytics.user.orgs.OrgsController;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class OrgsControllerTest {
 
     private OrgsController sut;
+    private Org existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
 
     @Mock
-    private CcOperationsOrgsSpaces cfClient;
+    private OrganizationResourceMock organizationResource;
 
     @Mock
     private Authentication userAuthentication;
@@ -57,73 +55,45 @@ public class OrgsControllerTest {
 
     @Before
     public void Setup() {
-        sut = new OrgsController(cfClient, detailsFinder);
+        sut = new OrgsController(detailsFinder, organizationResource);
+        when(organizationResource.getOrganizations()).thenReturn(Arrays.asList(existingOrganization));
     }
 
     @Test
-    public void getOrgsWithSpaces_noInput_askCfForOrgsAndSpacesAndReturnCombinedData() {
-
-        Observable<CcSpace> spacesFromCf = Observable.from( OrgsTestsResources.getSpacesReturnedByCfAdapter() );
-        Observable<CcOrg> orgsFromCf = Observable.from( OrgsTestsResources.getOrgsReturnedByCfAdapter() );
-        Collection<Organization> expectedOrgs =
-            OrgsTestsResources.getOrgsWithSpacesExpectedToBeReturnedByScBeforeJsonization();
-
-        when(cfClient.getSpaces()).thenReturn(spacesFromCf);
-        when(cfClient.getOrgs()).thenReturn(orgsFromCf);
-
+    public void getOrgs_returnOneOrganization() {
+        Collection<Org> expectedOrgs = Arrays.asList(existingOrganization);
         AccessTokenDetails details = new AccessTokenDetails(UUID.randomUUID());
         when(userAuthentication.getDetails()).thenReturn(details);
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
 
-        Collection<Organization> orgs = sut.getOrgs(auth);
+        Collection<Org> orgs = sut.getOrgs(auth);
+
         assertEquals(expectedOrgs, orgs);
-
-        verify(cfClient).getSpaces();
-        verify(cfClient).getOrgs();
     }
 
-    @Test
-    public void renameOrg_positive() {
+    @Test(expected = NotImplementedException.class)
+    public void renameOrg() {
         UUID orgId = UUID.randomUUID();
         String testName = "test-name";
-
-        OrgNameRequest request = new OrgNameRequest();
-        request.setName(testName);
-        sut.renameOrg(request, orgId.toString());
-        verify(cfClient).renameOrg(orgId, testName);
-    }
-
-    @Test(expected = RuntimeException.class)
-    public void renameOrg_organization_does_not_exist() {
-        UUID orgId = UUID.randomUUID();
-        String testName = "test-name";
-
         OrgNameRequest request = new OrgNameRequest();
         request.setName(testName);
 
-        doThrow(new RuntimeException()).when(cfClient).renameOrg(orgId, testName);
         sut.renameOrg(request, orgId.toString());
-        verify(cfClient).renameOrg(orgId, testName);
     }
 
-    @Test
-    public void deleteOrg_positive() {
+    @Test(expected = NotImplementedException.class)
+    public void deleteOrg() {
         UUID orgId = UUID.randomUUID();
+
         sut.deleteOrg(orgId.toString());
-        verify(cfClient).deleteOrg(orgId);
     }
 
-    @Test
-    public void createOrg_validOrgNameRequest_requestSent() {
-        // given
-        final String orgName = "test-org-name";
-        final OrgNameRequest orgNameRequest = new OrgNameRequest();
-        orgNameRequest.setName(orgName);
+    @Test(expected = NotImplementedException.class)
+    public void createOrg() {
+        final String orgName = "test-name";
+        final OrgNameRequest request = new OrgNameRequest();
+        request.setName(orgName);
 
-        // when
-        sut.createOrg(orgNameRequest);
-
-        // then
-        verify(cfClient).createOrganization(orgName);
+        sut.createOrg(request);
     }
 }

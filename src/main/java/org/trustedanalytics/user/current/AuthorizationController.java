@@ -15,17 +15,10 @@
  */
 package org.trustedanalytics.user.current;
 
-import static java.util.stream.Collectors.toList;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-
+import com.google.common.base.Strings;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.trustedanalytics.cloud.cc.api.CcOperationsOrgsSpaces;
-import org.trustedanalytics.cloud.cc.api.CcOrgPermission;
-
-import com.google.common.base.Strings;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +26,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.user.model.Org;
+import org.trustedanalytics.user.model.OrgPermission;
+import org.trustedanalytics.user.model.UserRole;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,50 +37,52 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static java.util.stream.Collectors.toList;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+
 @RestController
 public class AuthorizationController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationController.class);
 
-    private final CcOperationsOrgsSpaces ccClient;
     private final UserDetailsFinder detailsFinder;
+    private final OrganizationResourceMock organizationResourceMock;
 
     @Autowired
-    public AuthorizationController(CcOperationsOrgsSpaces ccClient,
-        UserDetailsFinder detailsFinder) {
+    public AuthorizationController(UserDetailsFinder detailsFinder, OrganizationResourceMock organizationResourceMock) {
         this.detailsFinder = detailsFinder;
-        this.ccClient = ccClient;
+        this.organizationResourceMock = organizationResourceMock;
     }
 
     @ApiOperation(
-            value = "Returns permissions for user within specified organizations.",
+            value = "Returns permissions for user within one organization",
             notes = "Privilege level: Any consumer of this endpoint must have a valid access token"
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = CcOrgPermission.class, responseContainer = "List"),
-            @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
+            @ApiResponse(code = 200, message = "OK", response = OrgPermission.class, responseContainer = "List"),
+            @ApiResponse(code = 500, message = "Internal server error")
     })
     @RequestMapping(value = "/rest/orgs/permissions", method = GET)
-    public Collection<CcOrgPermission> getPermissions(@RequestParam(required = false) String orgs,
+    public Collection<OrgPermission> getPermissions(@RequestParam(required = false) String orgs,
         Authentication authentication) {
 
         final List<UUID> organizations = new ArrayList<>();
         if (!Strings.isNullOrEmpty(orgs)) {
             organizations.addAll(
-                Arrays.asList(orgs.split(",")).stream().map(UUID::fromString).collect(toList()));
+                Arrays.stream(orgs.split(",")).map(UUID::fromString).collect(toList()));
         }
 
         return resolvePermissions(organizations, authentication);
     }
 
     /**
-     * Returns permissions for user within specified organizations.
+     * Returns permissions for user within one organization
      *
      * @param orgs           UUIDs
      * @param authentication authentication
      * @return permissions
      */
-    private Collection<CcOrgPermission> resolvePermissions(Collection<UUID> orgs,
+    private Collection<OrgPermission> resolvePermissions(Collection<UUID> orgs,
         Authentication authentication) {
         final UUID user = detailsFinder.findUserId(authentication);
         final UserRole role = detailsFinder.getRole(authentication);
@@ -101,13 +100,14 @@ public class AuthorizationController {
      * @param orgs organizations
      * @return permissions
      */
-    private Collection<CcOrgPermission> resolveAdminPermissions(Collection<UUID> orgs) {
-        return ccClient.getOrgs()
-            // filter organizations if at least one was specified, otherwise accept all
-            .filter(org -> orgs.contains(org.getGuid()) || orgs.isEmpty())
-            // grant full access
-            .map(org -> new CcOrgPermission(org, true, true, true))
-            .toList().toBlocking().single();
+    private Collection<OrgPermission> resolveAdminPermissions(Collection<UUID> orgs) {
+
+        // TODO: this collection will be retreived from external resource
+        Collection<Org> allOrganizations = organizationResourceMock.getOrganizations();
+
+        return allOrganizations.stream()
+            .map(org -> new OrgPermission(org, true, true))
+            .collect(toList());
     }
 
     /**
@@ -117,8 +117,13 @@ public class AuthorizationController {
      * @param orgs organizations
      * @return permissions
      */
-    private Collection<CcOrgPermission> resolveUserPermissions(UUID user, Collection<UUID> orgs) {
-        return ccClient.getUserPermissions(user, orgs);
+    private Collection<OrgPermission> resolveUserPermissions(UUID user, Collection<UUID> orgs) {
+
+        // TODO: user permissions in organization will be retreived from external resource
+        Collection<Org> allOrganizations = organizationResourceMock.getOrganizations();
+        return allOrganizations.stream()
+                .map(org -> new OrgPermission(org, true, false))
+                .collect(toList());
     }
 
 }

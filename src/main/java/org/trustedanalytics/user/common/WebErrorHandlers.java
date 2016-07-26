@@ -15,12 +15,6 @@
  */
 package org.trustedanalytics.user.common;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-
-import org.trustedanalytics.cloud.cc.api.customizations.FeignResponseException;
-import org.trustedanalytics.utils.errorhandling.ErrorFormatter;
-import org.trustedanalytics.utils.errorhandling.RestErrorHandler;
-
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -33,12 +27,16 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.trustedanalytics.utils.errorhandling.ErrorFormatter;
+import org.trustedanalytics.utils.errorhandling.RestErrorHandler;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletResponse;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 @ControllerAdvice
 @Order(Ordered.LOWEST_PRECEDENCE)

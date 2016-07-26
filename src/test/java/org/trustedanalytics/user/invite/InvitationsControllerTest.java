@@ -15,22 +15,14 @@
  */
 package org.trustedanalytics.user.invite;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.trustedanalytics.cloud.uaa.UaaOperations;
-import org.trustedanalytics.cloud.uaa.UserIdNameList;
-import org.trustedanalytics.cloud.uaa.UserIdNamePair;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
 import org.trustedanalytics.user.common.BlacklistEmailValidator;
-import org.trustedanalytics.user.common.InvitationPendingException;
-import org.trustedanalytics.user.common.UserExistsException;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
@@ -39,19 +31,17 @@ import org.trustedanalytics.user.invite.rest.InvitationModel;
 import org.trustedanalytics.user.invite.rest.InvitationsController;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.security.core.Authentication;
-import org.trustedanalytics.user.manageusers.UsersService;
-
-import java.util.Optional;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static junit.framework.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -83,8 +73,8 @@ public class InvitationsControllerTest {
     }
 
     @Test
-    public void testAddInvitation_userDoesNotExistNoPendingInvitation_sendEmail() {
-        InvitationModel invitation = InvitationModel.of(USER_EMAIL, true);
+    public void testAddInvitation_userDoesNotExistNoPendingInvitation_sendEmail_AddInvitation() {
+        InvitationModel invitation = InvitationModel.of(USER_EMAIL);
         doReturn(ADMIN_EMAIL).when(detailsFinder).findUserName(any(Authentication.class));
 
         when(invitationsService.userExists(anyString())).thenReturn(false);
@@ -92,13 +82,13 @@ public class InvitationsControllerTest {
 
         sut.addInvitation(invitation, null);
 
-        verify(invitationsService).sendInviteEmail(
-                eq(USER_EMAIL), eq(ADMIN_EMAIL));
+        verify(invitationsService).sendInviteEmail(eq(USER_EMAIL), eq(ADMIN_EMAIL));
+        verify(accessInvitationsService).createOrUpdateInvitation(eq(USER_EMAIL), any());
     }
 
     @Test(expected = UserExistsException.class)
     public void testAddInvitation_userExist_throwUserExistsException() {
-        InvitationModel invitation = InvitationModel.of(USER_EMAIL, true);
+        InvitationModel invitation = InvitationModel.of(USER_EMAIL);
         doReturn(ADMIN_EMAIL).when(detailsFinder).findUserName(any(Authentication.class));
 
         when(invitationsService.userExists(anyString())).thenReturn(true);
@@ -109,7 +99,7 @@ public class InvitationsControllerTest {
 
     @Test
     public void testAddInvitation_userDoesNotExisInvitationPending_addEglibilityToCreateOrg() {
-        InvitationModel invitation = InvitationModel.of(USER_EMAIL, true);
+        InvitationModel invitation = InvitationModel.of(USER_EMAIL);
         doReturn(ADMIN_EMAIL).when(detailsFinder).findUserName(any(Authentication.class));
 
         when(invitationsService.userExists(anyString())).thenReturn(false);
@@ -121,7 +111,6 @@ public class InvitationsControllerTest {
         ArgumentCaptor<AccessInvitations> captor = new ArgumentCaptor<>();
 
         verify(accessInvitationsService).updateAccessInvitation(anyString(), captor.capture());
-        assertTrue(captor.getValue().isEligibleToCreateOrg());
 
         assertEquals("Updated pending invitation", result.getDetails());
     }
@@ -129,7 +118,7 @@ public class InvitationsControllerTest {
     @Test(expected = WrongEmailAddressException.class)
     public void testAddInvitation_WrongEmailAddress() {
         String invalidEmail = "invalidEmail";
-        InvitationModel invitation = InvitationModel.of(invalidEmail, true);
+        InvitationModel invitation = InvitationModel.of(invalidEmail);
         sut.addInvitation(invitation, null);
     }
 }

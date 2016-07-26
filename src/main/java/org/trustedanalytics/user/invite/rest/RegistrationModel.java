@@ -18,16 +18,8 @@ package org.trustedanalytics.user.invite.rest;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter @Setter
 public class RegistrationModel {
-    @Getter @Setter
     private String password;
-
-    @Getter @Setter
-    private String org;
-
-    @Getter @Setter
-    private String orgGuid;
-
-    @Getter @Setter
     private String userGuid;
 }

@@ -15,46 +15,30 @@
  */
 package org.trustedanalytics.user.invite.config;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 @Component
+
+@Getter @Setter
 @ConfigurationProperties("smtp")
 public class SmtpProperties {
 
-    @Getter @Setter
     private String protocol;
-
-    @Getter @Setter
     private String host;
-
-    @Getter @Setter
     private String username;
-
-    @Getter @Setter
     private String password;
-
-    @Getter @Setter
     private String email;
-
-    @Getter @Setter
     private int port;
-
-    @Getter @Setter
     private int timeout;
-
-    @Getter @Setter
     private boolean debug;
-
-    @Getter @Setter
     private String emailName;
 
-    @Override
     public int hashCode() {
         return Objects.hash(timeout, debug, emailName, host, protocol, username, password, port);
     }

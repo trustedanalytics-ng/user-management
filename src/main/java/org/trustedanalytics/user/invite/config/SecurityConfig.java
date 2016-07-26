@@ -15,8 +15,6 @@
  */
 package org.trustedanalytics.user.invite.config;
 
-import org.trustedanalytics.user.common.TokenFetchException;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.security.oauth2.resource.ResourceServerProperties;
 import org.springframework.context.annotation.Bean;

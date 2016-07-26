@@ -16,15 +16,6 @@
 
 package org.trustedanalytics.user.invite.securitycode;
 
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
-import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.hasSize;
-import static java.util.stream.Collectors.toList;
-
-import java.util.HashSet;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +24,19 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisOperations;
 import org.trustedanalytics.user.invite.keyvaluestore.RedisStore;
+
+import java.util.HashSet;
+
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.isEmptyOrNullString;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -62,8 +66,8 @@ public class RedisSecurityCodeServiceTest {
         verify(hashOps, times(3)).putIfAbsent(anyString(), anyString(), codeCaptor.capture());
 
         //check that all generated codes were different
-        assertThat("Expected 3 different values for generated codes", 
-                new HashSet<String>(codeCaptor.getAllValues().stream().map(x -> x.getCode()).collect(toList())), hasSize(3));
+        assertThat("Expected 3 different values for generated codes",
+                new HashSet<>(codeCaptor.getAllValues().stream().map(x -> x.getCode()).collect(toList())), hasSize(3));
     }
 
     @Test(expected = SecurityCodeGenerationException.class)

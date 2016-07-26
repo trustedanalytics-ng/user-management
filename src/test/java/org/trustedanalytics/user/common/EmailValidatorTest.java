@@ -16,12 +16,11 @@
 
 package org.trustedanalytics.user.common;
 
-import org.trustedanalytics.user.invite.WrongEmailAddressException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.trustedanalytics.user.common.BlacklistEmailValidator;
+import org.trustedanalytics.user.invite.WrongEmailAddressException;
 
 import java.util.ArrayList;
 import java.util.List;

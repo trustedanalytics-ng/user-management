@@ -13,17 +13,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.rest;
+package org.trustedanalytics.user.model;
 
-public class EntityNotFoundException extends RuntimeException {
+import lombok.Data;
 
-    private static final long serialVersionUID = 1L;
+import java.util.UUID;
 
-    public EntityNotFoundException(String message) {
-        super(message);
+@Data
+public class UserModel {
+
+    private UUID guid;
+    private String email;
+    private UserRole role;
+
+    public UserModel(UUID guid, String email) {
+        this.guid = guid;
+        this.email = email;
     }
 
-    public EntityNotFoundException(String message, Throwable cause) {
-        super(message, cause);
+    public UserModel(String email, UserRole role) {
+        this.email = email;
+        this.role = role;
     }
 }

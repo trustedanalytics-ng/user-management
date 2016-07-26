@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,22 +13,33 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.manageusers;
+package org.trustedanalytics.user.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.collect.ImmutableList;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 
-public class UserRequest {
+import java.util.List;
+import java.util.UUID;
 
-    @JsonProperty("username")
-    @Getter @Setter
+@AllArgsConstructor
+@EqualsAndHashCode
+@Getter
+public class User {
+
     private String username;
+    private UUID guid;
+    private List<OrgRole> roles;
 
-    public UserRequest() {
+    public User appendRole(OrgRole role) {
+        List<OrgRole> userRoles = ImmutableList.<OrgRole>builder().addAll(this.roles).add(role).build();
+        return new User(username, guid, userRoles);
     }
 
-    public UserRequest(String username) {
-        this.username = username;
+    @Override
+    public String toString() {
+        return String.format("User [guid=%s, username=%s, roles=%s]", guid, username, roles);
     }
+
 }

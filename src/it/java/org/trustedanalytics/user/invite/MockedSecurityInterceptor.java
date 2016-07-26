@@ -15,18 +15,17 @@
  */
 package org.trustedanalytics.user.invite;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.access.intercept.FilterInvocationSecurityMetadataSource;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 
+import javax.servlet.ServletException;
 import java.io.IOException;
 
-import javax.servlet.ServletException;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 class MockedSecurityInterceptor extends FilterSecurityInterceptor {
 

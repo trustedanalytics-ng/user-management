@@ -16,6 +16,7 @@
 package org.trustedanalytics.user.current;
 
 import org.springframework.security.core.Authentication;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.UUID;
 

@@ -9,7 +9,7 @@ The primary responsibility of this service is the management of users in the pla
 * Global SysOp invitation. Admin user can send a email with invitation to create an organization and Org SysOp account;
 * Org SysOp invitation. Org SysOp can create new accounts for org users and send email with instructions how to log in.
 
-The service allows for SysOps not only invite new users, but also remove them and give them a role inside organization or a specific space.
+The service allows for SysOps not only invite new users, but also remove them and give them a role inside organization.
 All of these operations are performed against UAA and Cloud Controller.
 
 Required services

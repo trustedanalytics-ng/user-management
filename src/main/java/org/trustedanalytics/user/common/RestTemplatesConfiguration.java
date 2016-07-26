@@ -15,21 +15,13 @@
  */
 package org.trustedanalytics.user.common;
 
-import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
-import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
-
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.trustedanalytics.cloud.auth.AuthTokenRetriever;
-import org.trustedanalytics.cloud.auth.OAuth2TokenRetriever;
-import org.trustedanalytics.user.current.AuthDetailsFinder;
-import org.trustedanalytics.user.current.UserDetailsFinder;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.DefaultOAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -38,8 +30,15 @@ import org.springframework.security.oauth2.client.token.DefaultAccessTokenReques
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsAccessTokenProvider;
 import org.springframework.security.oauth2.client.token.grant.client.ClientCredentialsResourceDetails;
 import org.springframework.web.client.RestTemplate;
+import org.trustedanalytics.auth.AuthTokenRetriever;
+import org.trustedanalytics.auth.OAuth2TokenRetriever;
+import org.trustedanalytics.user.current.AuthDetailsFinder;
+import org.trustedanalytics.user.current.UserDetailsFinder;
 
 import java.util.List;
+
+import static org.springframework.context.annotation.ScopedProxyMode.TARGET_CLASS;
+import static org.springframework.web.context.WebApplicationContext.SCOPE_REQUEST;
 
 @Profile("cloud")
 @Configuration

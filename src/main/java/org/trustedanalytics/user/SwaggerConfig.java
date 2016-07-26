@@ -42,6 +42,7 @@ public class SwaggerConfig {
                 .useDefaultResponseMessages(false);
     }
 
+    @SuppressWarnings("Guava")
     private Predicate<String> userManagementPaths() {
         return or(
                 regex("/rest/.*"));
@@ -50,7 +51,7 @@ public class SwaggerConfig {
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
                 .title("User Management API")
-                .description("Api endpoints for managing users, organizations and spaces in TAP")
+                .description("Api endpoints for managing users and organizations in TAP")
                 .license("Apache License Version 2.0")
                 .licenseUrl("https://github.com/trustedanalytics/user-management/blob/master/LICENSE.txt")
                 .build();

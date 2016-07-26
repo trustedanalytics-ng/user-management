@@ -15,18 +15,10 @@
  */
 package org.trustedanalytics.user.invite.rest;
 
+import com.google.common.base.Strings;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.trustedanalytics.user.common.OrgAndUserGuids;
-import org.trustedanalytics.user.common.UserPasswordValidator;
-import org.trustedanalytics.user.invite.InvitationsService;
-import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeException;
-import org.trustedanalytics.user.invite.securitycode.SecurityCode;
-import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
-
-import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,8 +26,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Optional;
+import org.trustedanalytics.user.common.EntityNotFoundException;
+import org.trustedanalytics.user.common.UserPasswordValidator;
+import org.trustedanalytics.user.invite.InvitationsService;
+import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeException;
+import org.trustedanalytics.user.invite.securitycode.SecurityCode;
+import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
 
 @RestController
 @RequestMapping("/rest/registrations")
@@ -65,7 +62,7 @@ public class RegistrationsController {
             @ApiResponse(code = 400, message = "Invalid organization name."),
             @ApiResponse(code = 403, message = "Security code 'code' empty or null"),
             @ApiResponse(code = 409, message = "Invalid password (empty or too short)."),
-            @ApiResponse(code = 409, message = "Organization already exists."),
+            @ApiResponse(code = 409, message = "Org already exists."),
             @ApiResponse(code = 409, message = "User already exists."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
@@ -77,20 +74,11 @@ public class RegistrationsController {
         }
         SecurityCode sc = securityCodeService.verify(code);
         userPasswordValidator.validate(newUser.getPassword());
-        Optional<OrgAndUserGuids> orgAndUserGuids = Optional.empty();
         String email = sc.getEmail();
-        if (accessInvitationsService.getOrgCreationEligibility(email)) {
-            orgAndUserGuids = invitationsService.createUser(email, newUser.getPassword(), newUser.getOrg());
-        }
-        else {
-            invitationsService.createUser(email, newUser.getPassword());
-        }
+        invitationsService.createUser(email, newUser.getPassword());
         securityCodeService.redeem(sc);
         accessInvitationsService.redeemAccessInvitations(email);
-        orgAndUserGuids.ifPresent(guids -> {
-            newUser.setOrgGuid(guids.getOrgGuid().toString());
-            newUser.setUserGuid(guids.getUserGuid().toString());
-        });
+
         return newUser;
     }
 
@@ -106,7 +94,7 @@ public class RegistrationsController {
     public InvitationModel getInvitation(@PathVariable("code") String code) {
         try {
             final SecurityCode sc = securityCodeService.verify(code);
-            return InvitationModel.of(sc.getEmail(), accessInvitationsService.getOrgCreationEligibility(sc.getEmail()));
+            return InvitationModel.of(sc.getEmail());
         } catch (InvalidSecurityCodeException e) {
             throw new EntityNotFoundException("", e);
         }

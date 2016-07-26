@@ -13,10 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.common;
+package org.trustedanalytics.user.invite;
 
-public class TokenFetchException extends RuntimeException{
-    public TokenFetchException(String message, Throwable e) {
-        super(message, e);
+public class NoPendingInvitationFoundException extends RuntimeException {
+    public NoPendingInvitationFoundException(String message) {
+        super(message);
     }
 }

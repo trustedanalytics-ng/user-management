@@ -15,13 +15,6 @@
  */
 package org.trustedanalytics.user;
 
-import static org.mockito.Mockito.mock;
-
-import java.io.UnsupportedEncodingException;
-
-import javax.mail.internet.MimeMessage;
-
-import org.cloudfoundry.client.lib.CloudFoundryOperations;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
@@ -30,17 +23,27 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 import org.thymeleaf.spring4.SpringTemplateEngine;
-import org.trustedanalytics.cloud.auth.AuthTokenRetriever;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.uaa.UaaOperations;
+import org.trustedanalytics.auth.AuthTokenRetriever;
+import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.user.common.BlacklistEmailValidator;
 import org.trustedanalytics.user.common.FormatUserRolesValidator;
 import org.trustedanalytics.user.common.UserPasswordValidator;
 import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.invite.*;
+import org.trustedanalytics.user.invite.EmailInvitationsService;
+import org.trustedanalytics.user.invite.EmailService;
+import org.trustedanalytics.user.invite.InvitationLinkGenerator;
+import org.trustedanalytics.user.invite.InvitationsService;
+import org.trustedanalytics.user.invite.MessageService;
+import org.trustedanalytics.user.invite.SecurityDisabler;
 import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.manageusers.UsersService;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
+
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+
+import static org.mockito.Mockito.mock;
 
 @Configuration
 public class TestConfiguration {
@@ -54,17 +57,6 @@ public class TestConfiguration {
     @Bean
     protected UsersService usersService() {
         return mock(UsersService.class);
-    }
-
-    @Bean
-    protected CloudFoundryOperations cloudFoundryClient() {
-        return mock(CloudFoundryOperations.class);
-    }
-
-
-    @Bean
-    protected CcOperations ccClient() {
-        return mock(CcOperations.class);
     }
 
     @Bean
@@ -146,5 +138,10 @@ public class TestConfiguration {
     @Bean
     protected InvitationLinkGenerator invitationLinkGenerator() {
         return mock(InvitationLinkGenerator.class);
+    }
+
+    @Bean
+    protected OrganizationResourceMock organizationResourceMock() {
+        return new OrganizationResourceMock();
     }
 }

@@ -15,48 +15,19 @@
  */
 package org.trustedanalytics.user.invite;
 
-import static org.mockito.Matchers.*;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.core.StringContains.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.trustedanalytics.user.orgs.RestOperationsHelpers.postForEntityWithToken;
-
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.hamcrest.CoreMatchers;
-import org.trustedanalytics.cloud.cc.api.CcOperations;
-import org.trustedanalytics.cloud.cc.api.manageusers.Role;
-import org.trustedanalytics.cloud.uaa.UaaOperations;
-import org.trustedanalytics.cloud.uaa.UserIdNameList;
-import org.trustedanalytics.cloud.uaa.UserIdNamePair;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
-import org.trustedanalytics.org.cloudfoundry.identity.uaa.scim.ScimUserFactory;
-import org.trustedanalytics.user.Application;
-import org.trustedanalytics.user.TestConfiguration;
-import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.invite.access.AccessInvitations;
-import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.invite.rest.InvitationModel;
-import org.trustedanalytics.user.invite.rest.RegistrationModel;
-import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Matchers;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -64,23 +35,36 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.web.client.RestOperations;
-import org.trustedanalytics.user.manageusers.UsersService;
-import org.trustedanalytics.user.orgs.RestOperationsHelpers;
-import org.trustedanalytics.cloud.cc.api.CcOrg;
-import org.trustedanalytics.cloud.cc.api.Page;
-import rx.Observable;
-
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.UUID;
+import org.trustedanalytics.uaa.UaaOperations;
+import org.trustedanalytics.uaa.UserIdNameList;
+import org.trustedanalytics.uaa.UserIdNamePair;
+import org.trustedanalytics.user.Application;
+import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.invite.access.AccessInvitations;
+import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.invite.rest.InvitationModel;
+import org.trustedanalytics.user.invite.rest.RegistrationModel;
+import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
 
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.core.StringContains.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.trustedanalytics.user.orgs.RestOperationsHelpers.postForEntityWithToken;
 
 
 @ActiveProfiles("in-memory")
@@ -98,9 +82,6 @@ public class InvitationsIT {
 
     @Autowired
     private SecurityCodeService codeService;
-
-    @Autowired
-    private CcOperations ccClient;
 
     @Autowired
     private UaaOperations uaaClient;
@@ -153,7 +134,7 @@ public class InvitationsIT {
         when(accessInvitationsService.getAccessInvitations(INVITATION_MAIL)).thenReturn(Optional.empty());
         when(invitationLinkGenerator.getLink(anyString())).thenReturn("http://example.com");
 
-        InvitationModel invitation = InvitationModel.of(INVITATION_MAIL, false);
+        InvitationModel invitation = InvitationModel.of(INVITATION_MAIL);
 
         ResponseEntity<String> response =
             postForEntityWithToken(restTemplate, TOKEN, baseUrl + "rest/invitations", invitation,
@@ -189,27 +170,16 @@ public class InvitationsIT {
         final String username = "validcode@test";
         final String password = "asdasd";
         final String organization = "testorg";
-        final String defaultSpaceName = "default";
         final UUID orgGuid = UUID.randomUUID();
         final UUID userGuid = UUID.randomUUID();
-        final UUID spaceGuid = UUID.randomUUID();
         final String userGuidString = userGuid.toString();
         final String code = codeService.generateCode(username).getCode();
 
         when(uaaClient.createUser(anyString(), anyString()))
             .thenReturn(new ScimUser(userGuidString, username, null, null));
 
-        when(ccClient.getOrgs()).thenReturn(Observable.<CcOrg>empty());
-
         setUpNotExistingUserRequest(username);
-
-        when(ccClient.createOrganization(organization)).thenReturn(orgGuid);
-        when(ccClient.createSpace(orgGuid, defaultSpaceName)).thenReturn(spaceGuid);
-
-
-        when(accessInvitations.isEligibleToCreateOrg()).thenReturn(true);
         when(accessInvitationsService.getAccessInvitations(anyString())).thenReturn(Optional.of(accessInvitations));
-        when(accessInvitationsService.getOrgCreationEligibility(anyString())).thenReturn(true);
 
         ResponseEntity<String> response =
             restTemplate.getForEntity(baseUrl + "rest/registrations/{code}", String.class, code);
@@ -217,7 +187,6 @@ public class InvitationsIT {
         assertThat(response.getBody(), containsString(username));
 
         RegistrationModel user = new RegistrationModel();
-        user.setOrg(organization);
         user.setPassword(password);
 
         response = restTemplate
@@ -226,10 +195,6 @@ public class InvitationsIT {
         assertThat(response.getStatusCode(), equalTo(HttpStatus.OK));
 
         verify(uaaClient).createUser(username, password);
-        verify(ccClient).createUser(userGuid);
-        verify(ccClient).createOrganization(organization);
-        verify(ccClient).assignUserToOrganization(userGuid, orgGuid);
-        verify(ccClient).assignUserToSpace(userGuid, spaceGuid);
     }
 
     private void setUpNotExistingUserRequest(String username) {

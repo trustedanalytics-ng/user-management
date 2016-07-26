@@ -15,16 +15,15 @@
  */
 package org.trustedanalytics.user.invite;
 
-import java.io.UnsupportedEncodingException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.mail.javamail.JavaMailSender;
 
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.mail.javamail.JavaMailSender;
+import java.io.UnsupportedEncodingException;
 
 public class EmailService implements MessageService {
 

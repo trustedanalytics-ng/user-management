@@ -23,7 +23,7 @@ import org.springframework.security.oauth2.client.resource.OAuth2ProtectedResour
 import org.springframework.security.oauth2.common.OAuth2AccessToken;
 
 
-public class OAuth2PriviligedInterceptor implements RequestInterceptor{
+public class OAuth2PriviligedInterceptor implements RequestInterceptor {
 
     private final OAuth2ProtectedResourceDetails clientCredentials;
 

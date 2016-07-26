@@ -15,23 +15,6 @@
  */
 package org.trustedanalytics.user.manageusers.cf;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import org.trustedanalytics.cloud.cc.api.manageusers.User;
-import org.trustedanalytics.user.common.BlacklistEmailValidator;
-import org.trustedanalytics.user.common.FormatUserRolesValidator;
-import org.trustedanalytics.user.common.WrongUserRolesException;
-import org.trustedanalytics.user.common.WrongUuidFormatException;
-import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.invite.config.AccessTokenDetails;
-import org.trustedanalytics.user.manageusers.UserRequest;
-import org.trustedanalytics.user.manageusers.UsersController;
-import org.trustedanalytics.user.manageusers.UsersService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,10 +22,22 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.trustedanalytics.user.common.BlacklistEmailValidator;
+import org.trustedanalytics.user.common.FormatUserRolesValidator;
+import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.invite.config.AccessTokenDetails;
+import org.trustedanalytics.user.manageusers.UserRequest;
+import org.trustedanalytics.user.manageusers.UsersController;
+import org.trustedanalytics.user.manageusers.UsersService;
+import org.trustedanalytics.user.model.UserModel;
 
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class UsersControllerTest {
@@ -77,10 +72,10 @@ public class UsersControllerTest {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
 
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgManager(userId, orgId)).thenReturn(false);
+        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
         sut.getOrgUsers(orgId.toString(), auth);
 
-        verify(usersService).isOrgManager(userId, orgId);
+        verify(usersService).isOrgAdmin(userId, orgId);
         verify(usersService, times(1)).getOrgUsers(orgId);
         verify(priviledgedUsersService, times(0)).getOrgUsers(orgId);
     }
@@ -92,10 +87,10 @@ public class UsersControllerTest {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
 
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgManager(userId, orgId)).thenReturn(true);
+        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(true);
         sut.getOrgUsers(orgId.toString(), auth);
 
-        verify(usersService).isOrgManager(userId, orgId);
+        verify(usersService).isOrgAdmin(userId, orgId);
         verify(usersService, times(0)).getOrgUsers(orgId);
         verify(priviledgedUsersService, times(1)).getOrgUsers(orgId);
     }
@@ -108,11 +103,11 @@ public class UsersControllerTest {
 
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
         when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
-        when(usersService.isOrgManager(userId, orgId)).thenReturn(false);
-        when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<User>empty());
+        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
+        when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<UserModel>empty());
         sut.createOrgUser(req, orgId.toString(), auth);
 
-        verify(usersService).isOrgManager(userId, orgId);
+        verify(usersService).isOrgAdmin(userId, orgId);
         verify(usersService, times(1)).addOrgUser(req, orgId, "admin_test");
         verify(priviledgedUsersService, times(0)).addOrgUser(req, orgId, "admin_test");
     }
@@ -124,41 +119,12 @@ public class UsersControllerTest {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
 
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgManager(userId, orgId)).thenReturn(false);
+        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
         sut.deleteUserFromOrg(orgId.toString(), userId.toString(), auth);
 
-        verify(usersService).isOrgManager(userId, orgId);
+        verify(usersService).isOrgAdmin(userId, orgId);
         verify(usersService, times(1)).deleteUserFromOrg(userId, orgId);
         verify(priviledgedUsersService, times(0)).deleteUserFromOrg(userId, orgId);
     }
 
-    @Test(expected = WrongUserRolesException.class)
-    public void createSpaceUser_ByNonManager_PriviledgedServiceNotUsed_EmptyRole() {
-        UUID spaceId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
-        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
-
-        req.setRoles(new ArrayList<>());
-        when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
-
-        sut.createSpaceUser(req, spaceId.toString(), auth);
-
-        verify(usersService).isSpaceManager(userId, spaceId);
-        verify(usersService, times(1)).addSpaceUser(req, spaceId, "admin_test");
-        verify(priviledgedUsersService, times(0)).addSpaceUser(req, spaceId, "admin_test");
-    }
-
-    @Test(expected = WrongUuidFormatException.class)
-    public void createSpaceUser_WrongUuidFormat() {
-        String spaceId = "wrong-guid-format-string";
-        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
-
-        req.setRoles(new ArrayList<>());
-
-        sut.createSpaceUser(req, spaceId, auth);
-
-        verify(priviledgedUsersService, times(0)).addSpaceUser(anyObject(), anyObject(), anyObject());
-
-    }
 }

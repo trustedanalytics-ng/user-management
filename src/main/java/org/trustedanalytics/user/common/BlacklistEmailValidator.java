@@ -16,10 +16,10 @@
 
 package org.trustedanalytics.user.common;
 
+import org.trustedanalytics.user.invite.WrongEmailAddressException;
+
 import java.util.List;
 import java.util.regex.Pattern;
-
-import org.trustedanalytics.user.invite.WrongEmailAddressException;
 
 public class BlacklistEmailValidator implements EmailValidator {
     private static final String EMAIL_PATTERN = "^[a-z0-9!#$%&'*+=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+=?^_`{|}~-]+)*@" +

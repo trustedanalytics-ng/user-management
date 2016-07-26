@@ -13,30 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.orgs;
+package org.trustedanalytics.user.invite;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.UUID;
-
-public class NewSpaceRequest {
-    @JsonProperty("org_guid")
-    private UUID orgGuid;
-    private String name;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public UUID getOrgGuid() {
-        return orgGuid;
-    }
-
-    public void setOrgGuid(UUID orgGuid) {
-        this.orgGuid = orgGuid;
+public class UserExistsException extends RuntimeException {
+    public UserExistsException(String message) {
+        super(message);
     }
 }

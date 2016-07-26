@@ -17,13 +17,21 @@ package org.trustedanalytics.user.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 
-@JsonIgnoreProperties(ignoreUnknown = true) public class UaaProblem {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Getter
+@Setter
+public class UaaProblem {
+
     private String message;
     private String error;
-    @JsonProperty("user_id") private String userId;
+
+    @JsonProperty("user_id")
+    private String userId;
 
     public UaaProblem() {
     }
@@ -34,44 +42,8 @@ import java.util.Objects;
         this.userId = userId;
     }
 
-    /**
-     * @return the message
-     */
-    public String getMessage() {
-        return message;
-    }
-    /**
-     * @param message the message to set
-     */
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    /**
-     * @return the error
-     */
-    public String getError() {
-        return error;
-    }
-    /**
-     * @param error the error to set
-     */
-    public void setError(String error) {
-        this.error = error;
-    }
-    /**
-     * @return the userId
-     */
-    public String getUserId() {
-        return userId;
-    }
-    /**
-     * @param userId the userId to set
-     */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return Objects.hash(message, error, userId);
     }
 

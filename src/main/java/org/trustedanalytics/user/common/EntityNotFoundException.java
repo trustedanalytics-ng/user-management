@@ -13,9 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.current;
+package org.trustedanalytics.user.common;
 
-public enum UserRole {
-    ADMIN,
-    USER;
+public class EntityNotFoundException extends RuntimeException {
+
+    private static final long serialVersionUID = 1L;
+
+    public EntityNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

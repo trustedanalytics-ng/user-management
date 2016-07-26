@@ -16,30 +16,20 @@
 
 package org.trustedanalytics.user.common;
 
-import org.trustedanalytics.cloud.cc.api.manageusers.Role;
+import org.trustedanalytics.user.model.OrgRole;
 
 import java.util.List;
 
 public class FormatUserRolesValidator implements UserRolesValidator {
-    private void validateSpaceUserRoles(List<Role> roles) {
-        if(roles == null || roles.isEmpty()) {
-            throw new WrongUserRolesException("You must have at least one role.");
-        }
-    }
 
-    private void validateOrgUserRoles(List<Role> roles) {
+    private void validateOrgUserRoles(List<OrgRole> roles) {
         if(roles == null) {
             throw new WrongUserRolesException("You cannot perform request without specified roles.");
         }
     }
 
     @Override
-    public void validateSpaceRoles(List<Role> roles) {
-        validateSpaceUserRoles(roles);
-    }
-
-    @Override
-    public void validateOrgRoles(List<Role> roles) {
+    public void validateOrgRoles(List<OrgRole> roles) {
         validateOrgUserRoles(roles);
     }
 }

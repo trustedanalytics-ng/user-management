@@ -15,11 +15,7 @@
  */
 package org.trustedanalytics.user.common;
 
-public class WrongUuidFormatException extends RuntimeException{
-    public WrongUuidFormatException(String message) {
-        super(message);
-    }
-
+public class WrongUuidFormatException extends RuntimeException {
     public WrongUuidFormatException(String message, Throwable cause) {
         super(message, cause);
     }

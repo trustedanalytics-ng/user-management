@@ -13,11 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.securitycode;
+package org.trustedanalytics.user.invite.config;
 
-
-public class NoSuchUserException extends RuntimeException {
-    public NoSuchUserException(String message) {
-        super(message);
+public class TokenFetchException extends RuntimeException{
+    public TokenFetchException(String message, Throwable e) {
+        super(message, e);
     }
 }

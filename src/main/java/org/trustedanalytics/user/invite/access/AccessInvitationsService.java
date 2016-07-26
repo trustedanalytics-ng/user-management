@@ -38,24 +38,6 @@ public class AccessInvitationsService {
         return Optional.ofNullable(store.get(email));
     }
 
-    public boolean getOrgCreationEligibility(String email) {
-        validateStringArgument(email);
-        return store.hasKey(email) && store.get(email).isEligibleToCreateOrg();
-    }
-
-    public void addEligibilityToCreateOrg(String email) {
-        validateStringArgument(email);
-        AccessInvitations userInvitations;
-
-        if (store.hasKey(email)) {
-            userInvitations = store.get(email);
-            userInvitations.setEligibleToCreateOrg(true);
-        } else {
-            userInvitations = new AccessInvitations(true);
-        }
-        store.put(email, userInvitations);
-    }
-
     public void updateAccessInvitation(String email, AccessInvitations invitations) {
         validateStringArgument(email);
         store.put(email, invitations);
@@ -72,10 +54,10 @@ public class AccessInvitationsService {
         CreateOrUpdateState state;
 
         if (store.hasKey(email)) {
-            userInvitations = store.get( email);
+            userInvitations = store.get(email);
             state = CreateOrUpdateState.UPDATED;
         } else {
-            userInvitations = new AccessInvitations(false);
+            userInvitations = new AccessInvitations();
             state = CreateOrUpdateState.CREATED;
         }
 

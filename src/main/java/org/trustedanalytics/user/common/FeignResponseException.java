@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,8 +15,18 @@
  */
 package org.trustedanalytics.user.common;
 
-public class NoPendingInvitationFoundException extends RuntimeException {
-    public NoPendingInvitationFoundException(String message) {
+import org.springframework.http.HttpStatus;
+
+public class FeignResponseException extends RuntimeException {
+
+    private final HttpStatus statusCode;
+
+    public FeignResponseException(int statusCode, String message) {
         super(message);
+        this.statusCode = HttpStatus.valueOf(statusCode);
+    }
+
+    public HttpStatus getStatusCode() {
+        return statusCode;
     }
 }

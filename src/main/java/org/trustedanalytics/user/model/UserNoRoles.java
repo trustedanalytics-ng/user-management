@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,20 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.common;
+package org.trustedanalytics.user.model;
 
-import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.util.UUID;
 
 
-public final class OrgAndUserGuids {
-    @Getter
-    private final UUID userGuid;
-    @Getter
-    private final UUID orgGuid;
-
-    public OrgAndUserGuids(UUID userGuid, UUID orgGuid) {
-        this.userGuid = userGuid;
-        this.orgGuid = orgGuid;
-    }
+@Data
+@AllArgsConstructor
+public class UserNoRoles {
+    private UUID guid;
+    private String username;
 }

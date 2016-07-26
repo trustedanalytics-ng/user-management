@@ -20,13 +20,10 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.trustedanalytics.user.common.UserExistsException;
-import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.invite.InvitationNotSentException;
-import org.trustedanalytics.user.invite.InvitationsService;
-
-import org.trustedanalytics.user.common.BlacklistEmailValidator;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,12 +31,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.trustedanalytics.user.common.BlacklistEmailValidator;
+import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.invite.InvitationNotSentException;
+import org.trustedanalytics.user.invite.InvitationsService;
+import org.trustedanalytics.user.invite.UserExistsException;
+import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.model.OrgRole;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/rest/invitations")
@@ -85,23 +89,24 @@ public class InvitationsController {
     public ErrorDescriptionModel addInvitation(@RequestBody InvitationModel invitation,
                                                @ApiParam(hidden = true) Authentication authentication) {
 
-        emailValidator.validate(invitation.getEmail());
-
-        String userName = detailsFinder.findUserName(authentication);
-        if (invitationsService.userExists(invitation.getEmail())) {
-            throw new UserExistsException(String.format("User %s already exists", invitation.getEmail()));
+        String userToInviteEmail = invitation.getEmail();
+        emailValidator.validate(userToInviteEmail);
+        if (invitationsService.userExists(userToInviteEmail)) {
+            throw new UserExistsException(String.format("User %s already exists", userToInviteEmail));
         }
 
-        return accessInvitationsService.getAccessInvitations(invitation.getEmail())
-            .map(inv -> {
-                inv.setEligibleToCreateOrg(true);
-                accessInvitationsService.updateAccessInvitation(invitation.getEmail(), inv);
-                return new ErrorDescriptionModel(ErrorDescriptionModel.State.UPDATED, "Updated pending invitation");
-            }).orElseGet(() -> {
-                accessInvitationsService.addEligibilityToCreateOrg(invitation.getEmail());
-                String invitationLink = invitationsService.sendInviteEmail(invitation.getEmail(), userName);
-                return new ErrorDescriptionModel(ErrorDescriptionModel.State.NEW, invitationLink);
-            });
+        return accessInvitationsService.getAccessInvitations(userToInviteEmail)
+                .map(inv -> {
+                    accessInvitationsService.updateAccessInvitation(userToInviteEmail, inv);
+                    return new ErrorDescriptionModel(ErrorDescriptionModel.State.UPDATED, "Updated pending invitation");
+                }).orElseGet(() -> {
+                    String currentUserName = detailsFinder.findUserName(authentication);
+                    String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
+                    UUID orgGuid = OrganizationResourceMock.get().getGuid();
+                    accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
+                            ui -> ui.addOrgAccessInvitation(orgGuid, new HashSet<>(Arrays.asList(OrgRole.USERS))));
+                    return new ErrorDescriptionModel(ErrorDescriptionModel.State.NEW, invitationLink);
+                });
     }
 
     @ApiOperation(
@@ -127,10 +132,10 @@ public class InvitationsController {
     })
     @RequestMapping(value = RESEND_INVITATION_URL,  method = RequestMethod.POST)
     @PreAuthorize(IS_ADMIN_CONDITION)
-    public void resendInvitation(@PathVariable("email") String email,
+    public void resendInvitation(@PathVariable("email") String userToInviteEmail,
                                  @ApiParam(hidden = true) Authentication authentication) {
-        String userName = detailsFinder.findUserName(authentication);
-        invitationsService.resendInviteEmail(email, userName);
+        String currentUserName = detailsFinder.findUserName(authentication);
+        invitationsService.resendInviteEmail(userToInviteEmail, currentUserName);
     }
 
     @ApiOperation(

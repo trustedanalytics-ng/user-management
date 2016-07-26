@@ -13,44 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.current;
+package org.trustedanalytics.user.model;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-public class UserModel {
+import java.util.UUID;
 
-    private String email;
+@Data
+@AllArgsConstructor
+public class Org {
 
-    private String org;
-
-    private UserRole role;
-
-    public UserModel() {
+    public Org() {
     }
 
-    public UserModel(String email) {
-        this.email = email;
-    }
-
-    public String getOrg() {
-        return org;
-    }
-
-    public void setOrg(String org) {
-        this.org = org;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public UserRole getRole() {
-        return role;
-    }
-
-    public void setRole(UserRole role) {
-        this.role = role;
-    }
+    private UUID guid;
+    private String name;
 }

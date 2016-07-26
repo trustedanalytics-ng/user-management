@@ -15,16 +15,15 @@
  */
 package org.trustedanalytics.user.orgs;
 
-import static java.util.Collections.singletonList;
-
-import org.trustedanalytics.cloud.auth.HeaderAddingHttpInterceptor;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
 import org.springframework.http.client.support.InterceptingHttpAccessor;
 import org.springframework.web.client.RestOperations;
+import org.trustedanalytics.auth.HeaderAddingHttpInterceptor;
 
 import java.util.Map;
+
+import static java.util.Collections.singletonList;
 
 public class RestOperationsHelpers {
     public static ResponseEntity<String> getForEntityWithToken(RestOperations restTemplate,

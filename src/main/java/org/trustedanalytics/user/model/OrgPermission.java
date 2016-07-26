@@ -13,13 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.rest;
+package org.trustedanalytics.user.model;
 
-public class EntityAlreadyExistsException extends RuntimeException {
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-    private static final long serialVersionUID = 1L;
+@Data
+@AllArgsConstructor
+public class OrgPermission {
 
-    public EntityAlreadyExistsException(String message, Throwable cause) {
-        super(message, cause);
+    public OrgPermission() {
     }
+
+    private Org org;
+    private boolean user;
+    private boolean admin;
 }

@@ -1,7 +1,7 @@
 server:
   port: 0
 security:
-  ignored: /rest/registrations/*,/rest/registrations,/new-account*,/rest/orgs/**,/rest/spaces/**
+  ignored: /rest/registrations/*,/rest/registrations,/new-account*,/rest/orgs/**
 
 oauth:
   resource: ${vcap.services.sso.credentials.apiEndpoint:https://api.example.com}

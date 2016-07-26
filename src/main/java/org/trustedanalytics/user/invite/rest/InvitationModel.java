@@ -19,22 +19,17 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter @Setter(value= AccessLevel.PRIVATE)
 public class InvitationModel {
 
-    @Getter @Setter(value= AccessLevel.PRIVATE)
     private String email;
-
-    @Getter @Setter(value= AccessLevel.PRIVATE)
-    private boolean eligibleToCreateOrg;
 
     private InvitationModel() {
     }
 
-    public static InvitationModel of(String email, boolean eligibleToCreateOrg) {
+    public static InvitationModel of(String email) {
         InvitationModel im = new InvitationModel();
         im.setEmail(email);
-        im.setEligibleToCreateOrg(eligibleToCreateOrg);
         return im;
     }
-
 }

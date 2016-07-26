@@ -15,9 +15,8 @@
  */
 package org.trustedanalytics.user.manageusers;
 
-
-import org.trustedanalytics.cloud.cc.api.manageusers.Role;
-import org.trustedanalytics.cloud.cc.api.manageusers.User;
+import org.trustedanalytics.user.model.OrgRole;
+import org.trustedanalytics.user.model.UserModel;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,33 +24,14 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UsersService {
-    Collection<User> getOrgUsers(UUID orgGuid);
+    Collection<UserModel> getOrgUsers(UUID orgGuid);
 
-    Collection<User> getSpaceUsers(UUID spaceGuid, Optional<String> username);
+    Optional<UserModel> addOrgUser(UserRequest userRequest, UUID org, String currentUser);
 
-    Optional<User> addOrgUser(UserRequest userRequest, UUID org, String currentUser);
-    
-    Optional<User> addSpaceUser(UserRequest userRequest, UUID spaceGuid, String currentUser);
-    
-    void deleteUser(UUID guid);
-    
-    List<Role> updateOrgUserRoles(UUID userGuid, UUID orgGuid, UserRolesRequest userRolesRequest);
-
-    List<Role> updateSpaceUserRoles(UUID userGuid, UUID spaceGuid, UserRolesRequest userRolesRequest);
-
-    void revokeOrgRolesFromUser(UUID userGuid, UUID orgGuid, Role ... roles);
-
-    void revokeSpaceRolesFromUser(UUID userGuid, UUID spaceGuid, Role ... roles);
-
-    void assignOrgRolesToUser(UUID userGuid, UUID orgGuid, Role ... roles);
-
-    void assignSpaceRolesToUser(UUID userGuid, UUID spaceGuid, Role ... roles);
+    List<OrgRole> updateOrgUserRoles(UUID userGuid, UUID orgGuid, UserRolesRequest userRolesRequest);
 
     void deleteUserFromOrg(UUID userGuid, UUID orgId);
 
-    void deleteUserFromSpace(UUID userGuid, UUID spaceId);
+    boolean isOrgAdmin(UUID userId, UUID orgId);
 
-    boolean isOrgManager(UUID userId, UUID orgId);
-
-    boolean isSpaceManager(UUID userId, UUID spaceId);
 }
