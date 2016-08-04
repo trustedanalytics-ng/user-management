@@ -151,12 +151,14 @@ public class OrgsTestsResources {
                 "\"name\":\"" + org2Name + "\"," +
                 "\"spaces\":[{" +
                     "\"guid\":\"" + space2Guid + "\"," +
-                    "\"name\":\"" + space2Name + "\"" +
-                "}," +
+                    "\"name\":\"" + space2Name + "\"," +
+                    "\"spaceDeveloper\":false" +
+                    "}," +
                 "{" +
                     "\"guid\":\"" + space3Guid + "\"," +
-                    "\"name\":\"" + space3Name + "\"" +
-                "}]," +
+                    "\"name\":\"" + space3Name + "\"," +
+                    "\"spaceDeveloper\":false" +
+                    "}]," +
                 "\"manager\":false" +
             "}," +
             "{" +
@@ -164,8 +166,9 @@ public class OrgsTestsResources {
                 "\"name\":\"" + org1Name + "\"," +
                 "\"spaces\":[{" +
                     "\"guid\":\"" + space1Guid + "\"," +
-                    "\"name\":\"" + space1Name + "\"" +
-                "}]," +
+                    "\"name\":\"" + space1Name + "\"," +
+                    "\"spaceDeveloper\":false" +
+                    "}]," +
                 "\"manager\":false" +
             "}]";
             // @formatter:on

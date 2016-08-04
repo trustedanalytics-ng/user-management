@@ -29,7 +29,8 @@ public class FormatTranslator {
     }
 
     public static Collection<Organization> getOrganizationsWithSpaces(Collection<CcOrg> orgs, Collection<CcOrg> mngOrgs,
-                                                                      Collection<CcSpace> spacesList) {
+                                                                      Collection<CcSpace> spacesList,
+                                                                      Collection<CcSpace> developerSpaces) {
 
         Map<UUID, Organization> outputOrgs = new TreeMap<>();
         for (CcOrg cfOrg : orgs) {
@@ -37,15 +38,18 @@ public class FormatTranslator {
         }
 
         mngOrgs.forEach(mngorg -> {
-            if (outputOrgs.containsKey(mngorg.getGuid())){
+            if (outputOrgs.containsKey(mngorg.getGuid())) {
                 outputOrgs.get(mngorg.getGuid()).setManager(true);
             }
         });
 
-        for (CcSpace cfSpace : spacesList) {
+        for (CcSpace cfSpace: spacesList) {
             Organization org = outputOrgs.get(cfSpace.getOrgGuid());
             if (org != null) {
-                org.addSpace(new Space(cfSpace));
+                boolean match = developerSpaces
+                        .stream()
+                        .anyMatch(ds -> cfSpace.getMetadata().getGuid().equals(ds.getMetadata().getGuid()));
+                org.addSpace(new Space(cfSpace, match));
             }
         }
 

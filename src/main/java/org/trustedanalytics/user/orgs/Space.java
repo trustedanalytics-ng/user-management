@@ -22,6 +22,7 @@ import java.util.UUID;
 public class Space {
     private UUID guid;
     private String name;
+    private boolean spaceDeveloper;
 
     public Space(UUID guid, String name) {
         this.guid = guid;
@@ -33,8 +34,18 @@ public class Space {
         name = cfSpace.getName();
     }
 
+    public Space(CcSpace cfSpace, boolean developer) {
+        this.guid = cfSpace.getGuid();
+        this.name = cfSpace.getName();
+        this.spaceDeveloper = developer;
+    }
+
     public UUID getGuid() {
         return guid;
+    }
+
+    public boolean isSpaceDeveloper() {
+        return spaceDeveloper;
     }
 
     public String getName() {

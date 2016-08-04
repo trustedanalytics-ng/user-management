@@ -28,6 +28,10 @@ import io.swagger.annotations.ApiResponses;
 import org.trustedanalytics.cloud.cc.api.CcOperationsOrgsSpaces;
 import org.trustedanalytics.cloud.cc.api.CcOrg;
 import org.trustedanalytics.cloud.cc.api.CcSpace;
+import org.trustedanalytics.cloud.cc.api.manageusers.Role;
+import org.trustedanalytics.cloud.cc.api.queries.Filter;
+import org.trustedanalytics.cloud.cc.api.queries.FilterOperator;
+import org.trustedanalytics.cloud.cc.api.queries.FilterQuery;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.manageusers.OrgNameRequest;
 
@@ -66,11 +70,14 @@ public class OrgsController {
     @RequestMapping(value = GENERAL_ORGS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<Organization> getOrgs(@ApiParam(hidden = true) Authentication auth) {
+        UUID developer_guid = detailsFinder.findUserId(auth);
         Collection<CcOrg> orgs = ccClient.getOrgs().toList().toBlocking().single();
         Collection<CcSpace> spaces = ccClient.getSpaces().toList().toBlocking().single();
+        Collection<CcSpace> developerSpaces = ccClient.getUsersSpaces(developer_guid, Role.DEVELOPERS,
+                FilterQuery.from(Filter.DEVELOPER_GUID, FilterOperator.EQ, developer_guid));
         Collection<CcOrg> managedOrgs =
             ccClient.getManagedOrganizations(detailsFinder.findUserId(auth));
-        return FormatTranslator.getOrganizationsWithSpaces(orgs, managedOrgs, spaces);
+        return FormatTranslator.getOrganizationsWithSpaces(orgs, managedOrgs, spaces, developerSpaces);
     }
 
     @ApiOperation(
