@@ -40,7 +40,7 @@ public class SecureJacksonJsonRedisSerializer<T> extends JacksonJsonRedisSeriali
     }
 
     @Override
-    public T deserialize(byte[] bytes) throws SerializationException {
+    public T deserialize(byte[] bytes) {
         if(bytes == null || bytes.length == 0) {
             return null;
         }
@@ -57,7 +57,7 @@ public class SecureJacksonJsonRedisSerializer<T> extends JacksonJsonRedisSeriali
     }
 
     @Override
-    public byte[] serialize(Object t) throws SerializationException {
+    public byte[] serialize(Object t) {
         if(t == null) {
             return new byte[0];
         }
