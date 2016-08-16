@@ -246,8 +246,9 @@
                     </resources>
                     <env>
                         <PORT>80</PORT>
-                        <JAVA_OPTS>-Xmx500m</JAVA_OPTS>
+                        <JAVA_OPTS>-Xmx500m</JAVA_OPTS>                        
                     </env>
+                    <useConfigFile>true</useConfigFile>
                 </configuration>
             </plugin>
         </plugins>

@@ -4,43 +4,37 @@ security:
   ignored: /rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*
 
 spring.oauth2:
-  client:
-    accessTokenUri: ${vcap.services.sso.credentials.tokenUri}
-    userAuthorizationUri: ${vcap.services.sso.credentials.authorizationUri}
-    clientId: ${vcap.services.sso.credentials.clientId}
-    clientSecret: ${vcap.services.sso.credentials.clientSecret}
-
   resource:
-    id: cloud_controller
     jwt:
-      keyUri: ${vcap.services.sso.credentials.tokenKey}
-    userInfoUri: ${vcap.services.sso.credentials.userInfoUri}
-  check_token: ${vcap.services.sso.credentials.checkTokenUri}
+      keyUri: ${sso.tokenKey}
 
 oauth:
-  resource: ${vcap.services.sso.credentials.apiEndpoint}
-  uaa: ${vcap.services.sso.credentials.uaaUri}
+  uaa: ${sso.uaaUri}
 
 smtp:
-  host: ${vcap.services.smtp.credentials.host}
-  port: ${vcap.services.smtp.credentials.port}
-  protocol: ${vcap.services.smtp.credentials.protocol}
-  username: ${vcap.services.smtp.credentials.username}
-  password: ${vcap.services.smtp.credentials.password}
-  email: ${vcap.services.sso.credentials.email}
+  host: localhost
+  port: 25
+  protocol: smtp
+  username:
+  password:
+  email: ${sso.email:support@example.com}
   timeout: 5000
   debug: true
   #List of blocked domain. Adding new domain after comma: example.com,foo.com
-  forbidden_domains: ${vcap.services.smtp.credentials.forbidden_domains:example.com}
-  email_name: ${vcap.services.smtp.credentials.email_name:TrustedAnalytics}
+  forbidden_domains: example.com
+  email_name: TrustedAnalytics
+
+redis:
+  host: localhost
+  port: 6379
 
 web:
   debug: false
 
 app:
-   url: ${vcap.application.uris[0]:}
+   url: ${user.management.uri:}
    console:
-       host: console
+       host: dashboard
        useSsl: true
 
 

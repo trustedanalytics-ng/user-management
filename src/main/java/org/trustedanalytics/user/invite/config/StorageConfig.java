@@ -20,6 +20,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
@@ -42,9 +43,28 @@ public class StorageConfig {
     private StorageConfig() {
     }
 
+    @Configuration
+    public class RedisConnectionFactoryConfig {
+
+        @Value("${redis.host}")
+        private String redisHost;
+
+        @Value("${redis.port}")
+        private int redisPort;
+
+        @Bean
+        RedisConnectionFactory redisConnectionFactory() {
+            JedisConnectionFactory factory = new JedisConnectionFactory();
+            factory.setHostName(redisHost);
+            factory.setPort(redisPort);
+            factory.setUsePool(true);
+            return factory;
+        }
+    }
+
     @Profile("in-memory")
     @Configuration
-    public static class InMemoryStorageConfig {
+    public static class InMemorySecurityCodesStorageConfig {
 
         @Bean
         KeyValueStore<SecurityCode> inMemorySecurityCodeStore() {
@@ -101,7 +121,7 @@ public class StorageConfig {
 
     @Profile("redis")
     @Configuration
-    public static class RedisStorageConfig {
+    public static class RedisSecurityCodesStorageConfig {
 
         @Bean
         KeyValueStore<SecurityCode> redisSecurityCodeStore( RedisOperations<String, SecurityCode> redisTemplate) {
