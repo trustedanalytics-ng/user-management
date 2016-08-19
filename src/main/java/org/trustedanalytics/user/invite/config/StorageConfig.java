@@ -25,6 +25,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.trustedanalytics.redis.encryption.EncryptionService;
+import org.trustedanalytics.redis.encryption.HashService;
+import org.trustedanalytics.redis.encryption.serializer.HashedStringRedisSerializer;
+import org.trustedanalytics.redis.encryption.serializer.SecureJacksonJsonRedisSerializer;
 import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.invite.keyvaluestore.InMemoryStore;
@@ -32,9 +36,6 @@ import org.trustedanalytics.user.invite.keyvaluestore.KeyValueStore;
 import org.trustedanalytics.user.invite.keyvaluestore.RedisStore;
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
-import org.trustedanalytics.user.secure.EncryptionService;
-import org.trustedanalytics.user.secure.serializer.HashedStringRedisSerializer;
-import org.trustedanalytics.user.secure.serializer.SecureJacksonJsonRedisSerializer;
 
 public class StorageConfig {
 
@@ -84,12 +85,17 @@ public class StorageConfig {
 
         @Bean
         protected EncryptionService encryptionService() {
-            return new EncryptionService(cipher, salt);
+            return new EncryptionService(cipher);
         }
 
         @Bean
-        protected HashedStringRedisSerializer secureStringRedisSerializer(EncryptionService encryptionService) {
-            return new HashedStringRedisSerializer(encryptionService);
+        protected HashService hashService() {
+            return new HashService(salt);
+        }
+
+        @Bean
+        protected HashedStringRedisSerializer secureStringRedisSerializer(HashService hashService) {
+            return new HashedStringRedisSerializer(hashService);
         }
     }
 
