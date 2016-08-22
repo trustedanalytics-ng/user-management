@@ -4,7 +4,14 @@ security:
   ignored: /rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*
 
 spring.oauth2:
+  client:
+    accessTokenUri: ${sso.tokenUri}
+    userAuthorizationUri: ${sso.authorizationUri}
+    clientId: ${sso.clientId}
+    clientSecret: ${sso.clientSecret}
+
   resource:
+    id: scim
     jwt:
       keyUri: ${sso.tokenKey}
 
@@ -37,8 +44,6 @@ app:
        host: dashboard
        useSsl: true
 
-
-endpoints.enabled: false
 endpoints.health.enabled: true
 
 spring.profiles.active: cloud,in-memory
