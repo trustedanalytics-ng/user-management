@@ -15,23 +15,19 @@
  */
 package org.trustedanalytics.user.manageusers;
 
-import org.trustedanalytics.user.model.OrgRole;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.User;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface UsersService {
-    Collection<UserModel> getOrgUsers(UUID orgGuid);
+    Collection<User> getOrgUsers(UUID orgGuid);
 
-    Optional<UserModel> addOrgUser(UserRequest userRequest, UUID org, String currentUser);
-
-    List<OrgRole> updateOrgUserRoles(UUID userGuid, UUID orgGuid, UserRolesRequest userRolesRequest);
+    Optional<User> addOrgUser(UserRequest userRequest, UUID org, String currentUser);
 
     void deleteUserFromOrg(UUID userGuid, UUID orgId);
 
-    boolean isOrgAdmin(UUID userId, UUID orgId);
-
+    UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role);
 }

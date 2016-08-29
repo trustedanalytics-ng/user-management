@@ -11,7 +11,7 @@ spring.oauth2:
     clientSecret: ${sso.clientSecret}
 
   resource:
-    id: scim
+    id: tap
     jwt:
       keyUri: ${sso.tokenKey}
 

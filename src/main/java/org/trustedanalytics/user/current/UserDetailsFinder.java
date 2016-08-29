@@ -20,8 +20,6 @@ import org.trustedanalytics.user.model.UserRole;
 
 import java.util.UUID;
 
-
-
 public interface UserDetailsFinder {
 
     UserRole getRole(Authentication authentication);

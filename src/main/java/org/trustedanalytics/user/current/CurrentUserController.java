@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.uaa.ChangePasswordRequest;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.user.common.UserPasswordValidator;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.User;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.PUT;
@@ -53,19 +53,19 @@ public class CurrentUserController {
             value = "Returns current user.",
             notes = "Privilege level: Any consumer of this endpoint must have a valid access token")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = UserModel.class),
+            @ApiResponse(code = 200, message = "OK", response = User.class),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(method = RequestMethod.GET)
-    public UserModel getUser(Authentication auth) {
-        return new UserModel(auth.getName(), detailsFinder.getRole(auth));
+    public User getUser(Authentication auth) {
+        return new User(detailsFinder.findUserName(auth), detailsFinder.getRole(auth));
     }
 
     @ApiOperation(
             value = "Changes password for current user.",
             notes = "Privilege level: Any consumer of this endpoint must have a valid access token")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = UserModel.class),
+            @ApiResponse(code = 200, message = "OK", response = User.class),
             @ApiResponse(code = 400, message = "Password cannot be empty"),
             @ApiResponse(code = 409, message = "Password too short"),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")

@@ -19,12 +19,11 @@ package org.trustedanalytics.user.manageusers;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.trustedanalytics.user.model.OrgRole;
-
-import java.util.List;
+import org.trustedanalytics.user.model.UserRole;
 
 public class UserRolesRequest {
-    @JsonProperty("roles")
+
+    @JsonProperty("role")
     @Getter @Setter
-    private List<OrgRole> roles;
+    private UserRole role;
 }

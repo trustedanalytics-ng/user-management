@@ -29,12 +29,10 @@ import org.trustedanalytics.user.common.BlacklistEmailValidator;
 import org.trustedanalytics.user.common.FormatUserRolesValidator;
 import org.trustedanalytics.user.common.StringToUuidConverter;
 import org.trustedanalytics.user.current.UserDetailsFinder;
-import org.trustedanalytics.user.model.OrgRole;
 import org.trustedanalytics.user.model.User;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -64,9 +62,8 @@ public class UsersController {
         this.formatRolesValidator = formatRolesValidator;
     }
 
-    private UsersService determinePriviledgeLevel(Authentication auth, UUID scopeId) {
-        UUID userId = detailsFinder.findUserId(auth);
-        if(usersService.isOrgAdmin(userId, scopeId)) {
+    private UsersService determinePriviledgeLevel(Authentication auth) {
+        if (detailsFinder.getRole(auth).equals(UserRole.ADMIN)) {
             return priviledgedUsersService;
         }
         return usersService;
@@ -84,9 +81,9 @@ public class UsersController {
         @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(value = ORG_USERS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
-    public Collection<UserModel> getOrgUsers(@PathVariable String org, @ApiParam(hidden = true) Authentication auth) {
+    public Collection<User> getOrgUsers(@PathVariable String org, @ApiParam(hidden = true) Authentication auth) {
         UUID orgUuid = stringToUuidConverter.convert(org);
-        return determinePriviledgeLevel(auth, orgUuid).getOrgUsers(orgUuid);
+        return determinePriviledgeLevel(auth).getOrgUsers(orgUuid);
     }
 
     @ApiOperation(
@@ -95,7 +92,7 @@ public class UsersController {
                     "with OrgManager role, based on valid access token"
     )
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = UserModel.class),
+            @ApiResponse(code = 200, message = "OK", response = User.class),
             @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
                     "ID 'org' doesn't exist"),
             @ApiResponse(code = 409, message = "Email is not valid or it belongs to forbidden domains."),
@@ -103,13 +100,12 @@ public class UsersController {
     })
     @RequestMapping(value = ORG_USERS_URL, method = POST,
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public UserModel createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
+    public User createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
                               @ApiParam(hidden = true) Authentication auth) {
         UUID orgUuid = stringToUuidConverter.convert(org);
         String currentUser = detailsFinder.findUserName(auth);
         emailValidator.validate(userRequest.getUsername());
-        return determinePriviledgeLevel(auth, orgUuid)
-            .addOrgUser(userRequest, orgUuid, currentUser).orElse(null);
+        return determinePriviledgeLevel(auth).addOrgUser(userRequest, orgUuid, currentUser).orElse(null);
     }
 
     @ApiOperation(
@@ -117,7 +113,7 @@ public class UsersController {
             notes = "Privilege level: Consumer of this endpoint must be a member of specified organization " +
                     "with OrgManager role, based on valid access token")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = OrgRole.class, responseContainer = "List"),
+            @ApiResponse(code = 200, message = "OK", response = UserRole.class, responseContainer = "List"),
             @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
                     "ID 'org' doesn't exist"),
             @ApiResponse(code = 404, message = "User not found in organization."),
@@ -126,16 +122,13 @@ public class UsersController {
     })
     @RequestMapping(value = ORG_USERS_URL+"/{user}", method = POST,
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public List<OrgRole> updateOrgUserRoles(@RequestBody UserRolesRequest userRolesRequest, @PathVariable String org,
+    public UserRole updateOrgUserRole(@RequestBody UserRolesRequest userRolesRequest, @PathVariable String org,
                                          @PathVariable String user, @ApiParam(hidden = true) Authentication auth) {
-
-        // TODO: currently it always throws NotImplementedException() because org roles are not supported
-
-        formatRolesValidator.validateOrgRoles(userRolesRequest.getRoles());
+        formatRolesValidator.validateOrgRoles(userRolesRequest.getRole());
         UUID userGuid = stringToUuidConverter.convert(user);
         UUID orgGuid = stringToUuidConverter.convert(org);
-        return determinePriviledgeLevel(auth, orgGuid)
-                .updateOrgUserRoles(userGuid, orgGuid, userRolesRequest);
+        return determinePriviledgeLevel(auth)
+                .updateOrgUserRole(userGuid, orgGuid, userRolesRequest.getRole());
     }
 
     @ApiOperation(
@@ -154,7 +147,7 @@ public class UsersController {
                                   @ApiParam(hidden = true) Authentication auth) {
         UUID orgUuid = stringToUuidConverter.convert(org);
         UUID userUuid = stringToUuidConverter.convert(user);
-        determinePriviledgeLevel(auth, orgUuid).deleteUserFromOrg(userUuid, orgUuid);
+        determinePriviledgeLevel(auth).deleteUserFromOrg(userUuid, orgUuid);
     }
 
 }

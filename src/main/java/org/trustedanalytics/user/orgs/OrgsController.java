@@ -27,8 +27,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.manageusers.OrgNameRequest;
-import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.mocks.OrganizationResourceMock;
+import org.trustedanalytics.user.model.Org;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Collection;

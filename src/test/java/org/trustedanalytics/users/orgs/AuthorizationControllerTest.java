@@ -23,10 +23,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.trustedanalytics.user.current.AuthorizationController;
 import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.OrgPermission;
 import org.trustedanalytics.user.model.UserRole;
-import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -15,38 +15,31 @@
  */
 package org.trustedanalytics.user.current;
 
+import com.google.common.base.Preconditions;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.OAuth2Request;
 import org.trustedanalytics.user.invite.config.AccessTokenDetails;
 import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 public final class AuthDetailsFinder implements UserDetailsFinder {
 
-    private static final String ADMIN_ROLE = "console.admin";
+    public static final String ADMIN_ROLE = "tap.admin";
 
     @Override
     public UserRole getRole(Authentication authentication) {
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-        if(authorities == null || authorities.isEmpty())
-            return UserRole.USER;
-
-        boolean isAdmin = authorities.stream()
-            .map(GrantedAuthority::getAuthority)
-            .filter(ADMIN_ROLE::equalsIgnoreCase)
-            .count() > 0;
-
-        return isAdmin ? UserRole.ADMIN : UserRole.USER;
+        verifyAuthenticationToken(authentication);
+        Optional<Collection<String>> scope = Optional.ofNullable(retreiveScope(authentication));
+        return isAdmin(scope) ? UserRole.ADMIN : UserRole.USER;
     }
 
     @Override
     public UUID findUserId(Authentication authentication) {
-        if (authentication == null) {
-            throw new IllegalArgumentException("Authentication argument must not be null");
-        }
+        verifyAuthenticationToken(authentication);
         OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
         AccessTokenDetails details = (AccessTokenDetails) oauth2.getUserAuthentication().getDetails();
         return details.getUserGuid();
@@ -54,10 +47,22 @@ public final class AuthDetailsFinder implements UserDetailsFinder {
 
     @Override
     public String findUserName(Authentication authentication) {
-        if (authentication == null) {
-            throw new IllegalArgumentException("Authentication argument must not be null");
-        }
+        verifyAuthenticationToken(authentication);
         OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
         return oauth2.getName();
+    }
+
+    private void verifyAuthenticationToken(Authentication authentication) {
+        Preconditions.checkNotNull(authentication, "Authentication argument must not be null");
+    }
+
+    private Collection<String> retreiveScope(Authentication authentication) {
+        OAuth2Authentication oAuth2Authentication = (OAuth2Authentication) authentication;
+        OAuth2Request oAuth2Request = oAuth2Authentication.getOAuth2Request();
+        return oAuth2Request.getScope();
+    }
+
+    private boolean isAdmin(Optional<Collection<String>> scope) {
+        return scope.map(s -> s.contains(ADMIN_ROLE)).orElse(false);
     }
 }

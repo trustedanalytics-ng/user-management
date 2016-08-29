@@ -31,10 +31,10 @@ import org.springframework.test.context.web.WebAppConfiguration;
 import org.trustedanalytics.auth.AuthTokenRetriever;
 import org.trustedanalytics.user.Application;
 import org.trustedanalytics.user.current.UserDetailsFinder;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.OrgPermission;
 import org.trustedanalytics.user.model.UserRole;
-import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
 import java.util.UUID;
 

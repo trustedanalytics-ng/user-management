@@ -37,11 +37,9 @@ import org.trustedanalytics.user.invite.InvitationNotSentException;
 import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.UserExistsException;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.model.OrgRole;
 import org.trustedanalytics.user.mocks.OrganizationResourceMock;
+import org.trustedanalytics.user.model.UserRole;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,7 +47,7 @@ import java.util.UUID;
 @RequestMapping("/rest/invitations")
 public class InvitationsController {
 
-    public static final String IS_ADMIN_CONDITION = "hasRole('console.admin')";
+    public static final String IS_ADMIN_CONDITION = "hasRole('tap.admin')";
 
     public static final String RESEND_INVITATION_URL = "/{email}/resend";
 
@@ -104,7 +102,7 @@ public class InvitationsController {
                     String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
                     UUID orgGuid = OrganizationResourceMock.get().getGuid();
                     accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
-                            ui -> ui.addOrgAccessInvitation(orgGuid, new HashSet<>(Arrays.asList(OrgRole.USERS))));
+                            ui -> ui.addOrgAccessInvitation(orgGuid, UserRole.USER));
                     return new ErrorDescriptionModel(ErrorDescriptionModel.State.NEW, invitationLink);
                 });
     }

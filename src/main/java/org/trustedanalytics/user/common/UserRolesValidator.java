@@ -16,12 +16,10 @@
 
 package org.trustedanalytics.user.common;
 
-import org.trustedanalytics.user.model.OrgRole;
-
-import java.util.List;
+import org.trustedanalytics.user.model.UserRole;
 
 public interface UserRolesValidator {
 
-    void validateOrgRoles(List<OrgRole> roles);
+    void validateOrgRoles(UserRole role);
 
 }

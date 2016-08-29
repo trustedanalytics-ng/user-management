@@ -15,31 +15,29 @@
  */
 package org.trustedanalytics.user.model;
 
-import com.google.common.collect.ImmutableList;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.UUID;
 
+@Getter
 @AllArgsConstructor
 @EqualsAndHashCode
-@Getter
 public class User {
 
-    private String username;
     private UUID guid;
-    private List<OrgRole> roles;
+    private String username;
+    private UserRole role;
 
-    public User appendRole(OrgRole role) {
-        List<OrgRole> userRoles = ImmutableList.<OrgRole>builder().addAll(this.roles).add(role).build();
-        return new User(username, guid, userRoles);
+    public User(String username, UserRole role) {
+        this.username = username;
+        this.role = role;
     }
 
     @Override
     public String toString() {
-        return String.format("User [guid=%s, username=%s, roles=%s]", guid, username, roles);
+        return String.format("User [guid=%s, username=%s, role=%s]", guid, username, role);
     }
 
 }

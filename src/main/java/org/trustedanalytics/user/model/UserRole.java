@@ -17,5 +17,5 @@ package org.trustedanalytics.user.model;
 
 public enum UserRole {
     ADMIN,
-    USER;
+    USER
 }

@@ -19,18 +19,15 @@ import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.user.common.EntityNotFoundException;
+import org.trustedanalytics.user.current.AuthDetailsFinder;
 import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.model.OrgRole;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.User;
+import org.trustedanalytics.user.model.UserRole;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -50,40 +47,24 @@ public class CfUsersService implements UsersService {
     }
 
     @Override
-    public Collection<UserModel> getOrgUsers(UUID orgGuid) {
+    public Collection<User> getOrgUsers(UUID orgGuid) {
         Collection<ScimUser> scimUsers = uaaClient.getUsers().getResources();
         return scimUsers.stream()
-                .map(scimUser -> new UserModel(UUID.fromString(scimUser.getId()), scimUser.getUserName()))
+                .map(scimUser -> new User(UUID.fromString(scimUser.getId()), scimUser.getUserName(),
+                        extractOrgRole(scimUser)))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Optional<UserModel> addOrgUser(UserRequest userRequest, UUID orgGuid, String currentUser) {
-        // TODO: org roles are currently not supported in UAA
+    public Optional<User> addOrgUser(UserRequest userRequest, UUID orgGuid, String currentUser) {
         Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
         if(!idNamePair.isPresent()) {
-            inviteUserToOrg(userRequest.getUsername(),
-                    currentUser, orgGuid, new HashSet<>(Arrays.asList(OrgRole.USERS)));
+            inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, userRequest.getRole());
         }
         return idNamePair.map(pair -> {
             UUID userGuid = pair.getGuid();
-            return new UserModel(userGuid, userRequest.getUsername());
+            return new User(userGuid, userRequest.getUsername(), userRequest.getRole());
         });
-    }
-
-    private void inviteUserToOrg(String username, String currentUser, UUID orgGuid, Set<OrgRole> roles) {
-
-        AccessInvitationsService.CreateOrUpdateState state =
-                accessInvitationsService.createOrUpdateInvitation(username, ui -> ui.addOrgAccessInvitation(orgGuid, roles));
-        if (state == AccessInvitationsService.CreateOrUpdateState.CREATED) {
-            invitationsService.sendInviteEmail(username, currentUser);
-        }
-    }
-
-    @Override
-    public List<OrgRole> updateOrgUserRoles(UUID userGuid, UUID orgGuid, UserRolesRequest userRolesRequest) {
-        // TODO: org roles are currently not supported in UAA
-        throw new NotImplementedException();
     }
 
     @Override
@@ -94,9 +75,24 @@ public class CfUsersService implements UsersService {
         uaaClient.deleteUser(userGuid);
     }
 
+    private void inviteUserToOrg(String username, String currentUser, UUID orgGuid, UserRole role) {
+
+        AccessInvitationsService.CreateOrUpdateState state =
+                accessInvitationsService.createOrUpdateInvitation(username, ui -> ui.addOrgAccessInvitation(orgGuid, role));
+        if (state == AccessInvitationsService.CreateOrUpdateState.CREATED) {
+            invitationsService.sendInviteEmail(username, currentUser);
+        }
+    }
+
     @Override
-    public boolean isOrgAdmin(UUID userId, UUID orgId) {
-        // TODO: org roles are currently not supported in UAA
-        return false;
+    public UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role) {
+        throw new NotImplementedException();
+    }
+
+    private UserRole extractOrgRole(ScimUser user) {
+        if (user.getGroups().stream().anyMatch(g -> g.getDisplay().equals(AuthDetailsFinder.ADMIN_ROLE))) {
+            return UserRole.ADMIN;
+        }
+        return UserRole.USER;
     }
 }

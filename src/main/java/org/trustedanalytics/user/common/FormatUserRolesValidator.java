@@ -16,20 +16,18 @@
 
 package org.trustedanalytics.user.common;
 
-import org.trustedanalytics.user.model.OrgRole;
-
-import java.util.List;
+import org.trustedanalytics.user.model.UserRole;
 
 public class FormatUserRolesValidator implements UserRolesValidator {
 
-    private void validateOrgUserRoles(List<OrgRole> roles) {
-        if(roles == null) {
-            throw new WrongUserRolesException("You cannot perform request without specified roles.");
+    private void validateOrgUserRoles(UserRole role) {
+        if(role == null) {
+            throw new WrongUserRolesException("You cannot perform request without specified role.");
         }
     }
 
     @Override
-    public void validateOrgRoles(List<OrgRole> roles) {
-        validateOrgUserRoles(roles);
+    public void validateOrgRoles(UserRole role) {
+        validateOrgUserRoles(role);
     }
 }

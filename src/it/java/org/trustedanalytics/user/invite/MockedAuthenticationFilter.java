@@ -42,7 +42,7 @@ class MockedAuthenticationFilter extends BasicAuthenticationFilter {
 
         Authentication authenticationMock = mock(Authentication.class);
 
-        doReturn(ImmutableList.of((GrantedAuthority) () -> "console.admin"))
+        doReturn(ImmutableList.of((GrantedAuthority) () -> "tap.admin"))
             .when(authenticationMock).getAuthorities();
         doReturn((Principal) () -> "admin")
             .when(authenticationMock).getPrincipal();

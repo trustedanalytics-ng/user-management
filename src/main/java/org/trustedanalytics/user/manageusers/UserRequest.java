@@ -18,17 +18,26 @@ package org.trustedanalytics.user.manageusers;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.trustedanalytics.user.model.UserRole;
 
+@Getter @Setter
 public class UserRequest {
 
     @JsonProperty("username")
-    @Getter @Setter
     private String username;
+
+    @JsonProperty("role")
+    private UserRole role;
 
     public UserRequest() {
     }
 
     public UserRequest(String username) {
         this.username = username;
+    }
+
+    public UserRequest(String username, UserRole role) {
+        this(username);
+        this.role = role;
     }
 }

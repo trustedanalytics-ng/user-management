@@ -26,10 +26,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.OrgPermission;
 import org.trustedanalytics.user.model.UserRole;
-import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,5 +125,4 @@ public class AuthorizationController {
                 .map(org -> new OrgPermission(org, true, false))
                 .collect(toList());
     }
-
 }

@@ -26,9 +26,9 @@ import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.invite.config.AccessTokenDetails;
 import org.trustedanalytics.user.manageusers.OrgNameRequest;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.orgs.OrgsController;
-import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;

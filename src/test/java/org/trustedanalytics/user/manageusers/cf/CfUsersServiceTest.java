@@ -29,17 +29,18 @@ import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.manageusers.CfUsersService;
 import org.trustedanalytics.user.manageusers.UserRequest;
-import org.trustedanalytics.user.manageusers.UserRolesRequest;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.User;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.UserRole;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -54,9 +55,10 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class CfUsersServiceTest {
 
-    private UserModel testUser;
-    private Collection<UserModel> testUsers;
+    private User testUser;
+    private Collection<User> testUsers;
     private ScimUser testUserFromUaa;
+    private Set<ScimUser.Group> testUserGroups;
     private List<ScimUser> testUsersFromUaa;
     private Org existingOrganization;
 
@@ -83,9 +85,11 @@ public class CfUsersServiceTest {
 
     @Before
     public void setup() {
-        testUser = new UserModel(UUID.randomUUID(), "testuser");
+        testUser = new User(UUID.randomUUID(), "testuser", UserRole.USER);
         testUsers = Arrays.asList(testUser);
-        testUserFromUaa = new ScimUser(testUser.getGuid().toString(), testUser.getEmail(), "", "");
+        testUserFromUaa = new ScimUser(testUser.getGuid().toString(), testUser.getUsername(), "", "");
+        testUserGroups = new HashSet<>(Arrays.asList(new ScimUser.Group("tap,admin", "fake")));
+        testUserFromUaa.setGroups(new HashSet<>());
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
         existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
 
@@ -97,7 +101,7 @@ public class CfUsersServiceTest {
         when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
-        Collection<UserModel> result = sut.getOrgUsers(existingOrganization.getGuid());
+        Collection<User> result = sut.getOrgUsers(existingOrganization.getGuid());
 
         assertTrue(result.containsAll(testUsers));
     }
@@ -110,7 +114,7 @@ public class CfUsersServiceTest {
         when(accessInvitationsService.createOrUpdateInvitation(eq(userToAdd),
                 any())).thenReturn(AccessInvitationsService.CreateOrUpdateState.CREATED);
 
-        Optional<UserModel> resultUser = sut.addOrgUser(new UserRequest(userToAdd), UUID.randomUUID(), currentUser);
+        Optional<User> resultUser = sut.addOrgUser(new UserRequest(userToAdd), UUID.randomUUID(), currentUser);
 
         verify(accessInvitationsService).createOrUpdateInvitation(eq(userToAdd), any());
         verify(invitationService).sendInviteEmail(userToAdd, currentUser);
@@ -120,21 +124,15 @@ public class CfUsersServiceTest {
 
     @Test
     public void addOrgUser_userExists_doNotInviteUser_returnUser() {
-        UserIdNamePair idNamePair = UserIdNamePair.of(testUser.getGuid(), testUser.getEmail());
-        when(uaaOperations.findUserIdByName(testUser.getEmail())).thenReturn(Optional.ofNullable(idNamePair));
+        UserIdNamePair idNamePair = UserIdNamePair.of(testUser.getGuid(), testUser.getUsername());
+        when(uaaOperations.findUserIdByName(testUser.getUsername())).thenReturn(Optional.ofNullable(idNamePair));
 
-        Optional<UserModel> resultUser =
-                sut.addOrgUser(new UserRequest(testUser.getEmail()), UUID.randomUUID(), "admin_test");
+        Optional<User> resultUser =
+                sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), UUID.randomUUID(), "admin_test");
 
         verify(accessInvitationsService, never()).createOrUpdateInvitation(any(), any());
         assertTrue(resultUser.isPresent());
-        assertEquals(resultUser.get(), testUser);
-    }
-
-    @Test
-    // TODO: org roles are currently not supported in UAA
-    public void isOrgAdmin_returnFalse() {
-        assertFalse(sut.isOrgAdmin(testUser.getGuid(), UUID.randomUUID()));
+        assertEquals(testUser, resultUser.get());
     }
 
     @Test
@@ -163,6 +161,6 @@ public class CfUsersServiceTest {
 
     @Test(expected = NotImplementedException.class)
     public void updateOrgUserRoles_throwNotImplemented() {
-        sut.updateOrgUserRoles(UUID.randomUUID(), UUID.randomUUID(), new UserRolesRequest());
+        sut.updateOrgUserRole(UUID.randomUUID(), UUID.randomUUID(), UserRole.ADMIN);
     }
 }

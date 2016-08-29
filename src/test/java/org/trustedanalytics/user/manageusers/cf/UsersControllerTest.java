@@ -29,7 +29,8 @@ import org.trustedanalytics.user.invite.config.AccessTokenDetails;
 import org.trustedanalytics.user.manageusers.UserRequest;
 import org.trustedanalytics.user.manageusers.UsersController;
 import org.trustedanalytics.user.manageusers.UsersService;
-import org.trustedanalytics.user.model.UserModel;
+import org.trustedanalytics.user.model.User;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -68,14 +69,12 @@ public class UsersControllerTest {
     @Test
     public void getOrgUsers_ByNonManager_PriviledgedServiceNotUsed() {
         UUID orgId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.getRole(auth)).thenReturn(UserRole.USER);
 
-        when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
         sut.getOrgUsers(orgId.toString(), auth);
 
-        verify(usersService).isOrgAdmin(userId, orgId);
+        verify(detailsFinder).getRole(auth);
         verify(usersService, times(1)).getOrgUsers(orgId);
         verify(priviledgedUsersService, times(0)).getOrgUsers(orgId);
     }
@@ -83,14 +82,12 @@ public class UsersControllerTest {
     @Test
     public void getOrgUsers_ByManager_PriviledgedServiceUsed() {
         UUID orgId = UUID.randomUUID();
-        UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.getRole(auth)).thenReturn(UserRole.ADMIN);
 
-        when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(true);
         sut.getOrgUsers(orgId.toString(), auth);
 
-        verify(usersService).isOrgAdmin(userId, orgId);
+        verify(detailsFinder).getRole(auth);
         verify(usersService, times(0)).getOrgUsers(orgId);
         verify(priviledgedUsersService, times(1)).getOrgUsers(orgId);
     }
@@ -100,14 +97,14 @@ public class UsersControllerTest {
         UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
-
+        when(detailsFinder.getRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
         when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
-        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
-        when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<UserModel>empty());
+        when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<User>empty());
+
         sut.createOrgUser(req, orgId.toString(), auth);
 
-        verify(usersService).isOrgAdmin(userId, orgId);
+        verify(detailsFinder).getRole(auth);
         verify(usersService, times(1)).addOrgUser(req, orgId, "admin_test");
         verify(priviledgedUsersService, times(0)).addOrgUser(req, orgId, "admin_test");
     }
@@ -117,12 +114,12 @@ public class UsersControllerTest {
         UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
-
+        when(detailsFinder.getRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
-        when(usersService.isOrgAdmin(userId, orgId)).thenReturn(false);
+
         sut.deleteUserFromOrg(orgId.toString(), userId.toString(), auth);
 
-        verify(usersService).isOrgAdmin(userId, orgId);
+        verify(detailsFinder).getRole(auth);
         verify(usersService, times(1)).deleteUserFromOrg(userId, orgId);
         verify(priviledgedUsersService, times(0)).deleteUserFromOrg(userId, orgId);
     }
