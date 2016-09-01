@@ -121,8 +121,7 @@ public class EmailInvitationsService implements InvitationsService {
         return accessInvitationsService.getAccessInvitations(username)
                 .map(invitations -> {
                     final ScimUser user = uaaPrivilegedClient.createUser(username, password);
-                    final UUID userGuid = UUID.fromString(user.getId());
-                    return userGuid;
+                    return UUID.fromString(user.getId());
                 });
     }
 

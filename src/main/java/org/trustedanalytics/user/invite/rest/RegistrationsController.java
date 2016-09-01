@@ -34,6 +34,9 @@ import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeExceptio
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/rest/registrations")
 public class RegistrationsController {
@@ -75,7 +78,8 @@ public class RegistrationsController {
         SecurityCode sc = securityCodeService.verify(code);
         userPasswordValidator.validate(newUser.getPassword());
         String email = sc.getEmail();
-        invitationsService.createUser(email, newUser.getPassword());
+        Optional<UUID> userGuid = invitationsService.createUser(email, newUser.getPassword());
+        userGuid.ifPresent(u -> newUser.setUserGuid(u.toString()));
         securityCodeService.redeem(sc);
         accessInvitationsService.redeemAccessInvitations(email);
 

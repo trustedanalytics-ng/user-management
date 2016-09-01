@@ -37,9 +37,13 @@ import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeExceptio
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
 
+import java.util.Optional;
+import java.util.UUID;
+
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RegistrationsControllerTest {
@@ -158,11 +162,17 @@ public class RegistrationsControllerTest {
         SecurityCode sc = new SecurityCode(USER_EMAIL, SECURITY_CODE);
         doReturn(sc).when(securityCodeService).verify(Matchers.anyString());
         RegistrationModel registration = new RegistrationModel();
-        registration.setPassword("123456");
+        String userPassword = "123456";
+        UUID userGuid = UUID.randomUUID();
+        when(invitationsService.createUser(USER_EMAIL, userPassword)).thenReturn(Optional.of(userGuid));
 
-        sut.addUser(registration, SECURITY_CODE);
+        registration.setPassword(userPassword);
+
+        RegistrationModel registeredUser = sut.addUser(registration, SECURITY_CODE);
 
         Mockito.verify(securityCodeService).redeem(sc);
+        Assert.assertTrue(registeredUser.getPassword().equals(userPassword));
+        Assert.assertTrue(registeredUser.getUserGuid().equals(userGuid.toString()));
     }
 
     @Test
