@@ -42,6 +42,9 @@ public class InvitationsConfig {
     @Value("#{'${smtp.forbidden_domains}'.split(',')}")
     private List<String> forbiddenDomains;
 
+    @Value("${console.host}")
+    private String consoleHost;
+
     @Autowired
     private SmtpProperties smtpProperties;
 
@@ -101,6 +104,6 @@ public class InvitationsConfig {
 
     @Bean
     protected InvitationLinkGenerator intitationLinkGenerator() {
-        return new AngularInvitationLinkGenerator();
+        return new AngularInvitationLinkGenerator(consoleHost);
     }
 }

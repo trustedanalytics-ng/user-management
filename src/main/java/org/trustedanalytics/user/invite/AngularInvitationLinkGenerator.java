@@ -20,10 +20,19 @@ import com.google.common.base.Strings;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 public class AngularInvitationLinkGenerator implements InvitationLinkGenerator {
+
+    private final String consoleHost;
+
+    public AngularInvitationLinkGenerator(String consoleHost) {
+        this.consoleHost = consoleHost;
+    }
+
     @Override
     public String getLink(String code) {
         Preconditions.checkArgument(!Strings.isNullOrEmpty(code));
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/new-account?code="+code).build().toUriString();
+        return ServletUriComponentsBuilder
+                .fromHttpUrl(consoleHost + "/new-account?code=" + code)
+                .build()
+                .toUriString();
     }
 }

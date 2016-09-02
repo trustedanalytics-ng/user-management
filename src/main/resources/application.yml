@@ -38,12 +38,6 @@ redis:
 web:
   debug: false
 
-app:
-   url: ${user.management.uri:}
-   console:
-       host: dashboard
-       useSsl: true
-
 endpoints.health.enabled: true
 
 spring.profiles.active: cloud,in-memory
