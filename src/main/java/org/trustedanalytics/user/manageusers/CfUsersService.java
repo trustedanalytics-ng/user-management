@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.user.manageusers;
 
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
@@ -24,7 +25,6 @@ import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.model.User;
 import org.trustedanalytics.user.model.UserRole;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -55,6 +55,13 @@ public class CfUsersService implements UsersService {
                 .collect(Collectors.toList());
     }
 
+    private UserRole extractOrgRole(ScimUser user) {
+        if (user.getGroups().stream().anyMatch(g -> g.getDisplay().equals(AuthDetailsFinder.ADMIN_GROUP))) {
+            return UserRole.ADMIN;
+        }
+        return UserRole.USER;
+    }
+
     @Override
     public Optional<User> addOrgUser(UserRequest userRequest, UUID orgGuid, String currentUser) {
         Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
@@ -67,16 +74,7 @@ public class CfUsersService implements UsersService {
         });
     }
 
-    @Override
-    public void deleteUserFromOrg(UUID userGuid, UUID orgGuid) {
-        if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
-            throw new EntityNotFoundException("The user does not exist", null);
-        }
-        uaaClient.deleteUser(userGuid);
-    }
-
     private void inviteUserToOrg(String username, String currentUser, UUID orgGuid, UserRole role) {
-
         AccessInvitationsService.CreateOrUpdateState state =
                 accessInvitationsService.createOrUpdateInvitation(username, ui -> ui.addOrgAccessInvitation(orgGuid, role));
         if (state == AccessInvitationsService.CreateOrUpdateState.CREATED) {
@@ -85,14 +83,32 @@ public class CfUsersService implements UsersService {
     }
 
     @Override
-    public UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role) {
-        throw new NotImplementedException();
+    public void deleteUserFromOrg(UUID userGuid, UUID orgGuid) {
+        if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
+            throw new EntityNotFoundException("The user does not exist", null);
+        }
+        uaaClient.deleteUser(userGuid);
     }
 
-    private UserRole extractOrgRole(ScimUser user) {
-        if (user.getGroups().stream().anyMatch(g -> g.getDisplay().equals(AuthDetailsFinder.ADMIN_ROLE))) {
-            return UserRole.ADMIN;
+    @Override
+    public UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role) {
+        ScimGroup adminGroup = getAdminGroup();
+        if (isGroupMember(adminGroup, userGuid) && role.equals(UserRole.USER)) {
+            uaaClient.removeUserFromGroup(adminGroup, userGuid);
+        } else if (!isGroupMember(adminGroup, userGuid) && role.equals(UserRole.ADMIN)) {
+            uaaClient.addUserToGroup(adminGroup, userGuid);
         }
-        return UserRole.USER;
+        return role;
+    }
+
+    private ScimGroup getAdminGroup() {
+        return uaaClient
+                .getGroup(AuthDetailsFinder.ADMIN_GROUP)
+                .orElseThrow(() -> new EntityNotFoundException("Group " + AuthDetailsFinder.ADMIN_GROUP +
+                " not found in UAA database"));
+    }
+
+    private boolean isGroupMember(ScimGroup group, UUID userGuid) {
+        return group.getMembers().stream().anyMatch(m -> m.getMemberId().equals(userGuid.toString()));
     }
 }

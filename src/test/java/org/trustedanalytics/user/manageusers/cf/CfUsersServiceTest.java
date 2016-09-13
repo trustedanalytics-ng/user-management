@@ -16,6 +16,8 @@
 package org.trustedanalytics.user.manageusers.cf;
 
 import org.cloudfoundry.identity.uaa.rest.SearchResults;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
+import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.user.common.EntityNotFoundException;
+import org.trustedanalytics.user.current.AuthDetailsFinder;
 import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.manageusers.CfUsersService;
@@ -32,8 +35,8 @@ import org.trustedanalytics.user.manageusers.UserRequest;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.User;
 import org.trustedanalytics.user.model.UserRole;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -47,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -58,7 +62,7 @@ public class CfUsersServiceTest {
     private User testUser;
     private Collection<User> testUsers;
     private ScimUser testUserFromUaa;
-    private Set<ScimUser.Group> testUserGroups;
+    private ScimGroup adminGroup;
     private List<ScimUser> testUsersFromUaa;
     private Org existingOrganization;
 
@@ -88,7 +92,7 @@ public class CfUsersServiceTest {
         testUser = new User(UUID.randomUUID(), "testuser", UserRole.USER);
         testUsers = Arrays.asList(testUser);
         testUserFromUaa = new ScimUser(testUser.getGuid().toString(), testUser.getUsername(), "", "");
-        testUserGroups = new HashSet<>(Arrays.asList(new ScimUser.Group("tap,admin", "fake")));
+        adminGroup = new ScimGroup(UUID.randomUUID().toString(), "tap.admin", UUID.randomUUID().toString());
         testUserFromUaa.setGroups(new HashSet<>());
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
         existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
@@ -159,8 +163,55 @@ public class CfUsersServiceTest {
         }
     }
 
-    @Test(expected = NotImplementedException.class)
-    public void updateOrgUserRoles_throwNotImplemented() {
-        sut.updateOrgUserRole(UUID.randomUUID(), UUID.randomUUID(), UserRole.ADMIN);
+    @Test
+    public void updateOrgUserRole_adminRole_userNotPresentInAdminGroup_addToAdminsGroup() {
+        when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
+        adminGroup.setMembers(new ArrayList<>());
+
+        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
+
+        verify(uaaOperations).addUserToGroup(adminGroup, testUser.getGuid());
+        verify(uaaOperations, never()).removeUserFromGroup(any(), any());
+    }
+
+    @Test
+    public void updateOrgUserRole_adminRole_userPresentInAdminGroup_doNothing() {
+        when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
+        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
+
+        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
+
+        verify(uaaOperations, never()).addUserToGroup(any(), any());
+        verify(uaaOperations, never()).removeUserFromGroup(any(), any());
+    }
+
+    @Test
+    public void updateOrgUserRole_userRole_userNotPresentInAdminGroup_doNothing() {
+        when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
+        adminGroup.setMembers(new ArrayList<>());
+
+        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.USER);
+
+        verify(uaaOperations, never()).addUserToGroup(any(), any());
+        verify(uaaOperations, never()).removeUserFromGroup(any(), any());
+    }
+
+    @Test
+    public void updateOrgUserRole_userRole_userPresentInAdminsGroup_removeFromAdminsGroup() {
+        when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
+        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
+
+        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.USER);
+
+        verify(uaaOperations, never()).addUserToGroup(any(), any());
+        verify(uaaOperations).removeUserFromGroup(adminGroup, testUser.getGuid());
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void updateOrgUserRole_groupDoesNotExist_throwEntityNotFound() {
+        Optional<ScimGroup> emptyGroup = Optional.empty();
+        when(uaaOperations.getGroup(any())).thenReturn(emptyGroup);
+
+        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
     }
 }

@@ -28,7 +28,8 @@ import java.util.UUID;
 
 public final class AuthDetailsFinder implements UserDetailsFinder {
 
-    public static final String ADMIN_ROLE = "tap.admin";
+    public static final String ADMIN_GROUP = "tap.admin";
+    public static final String USER_GROUP = "tap.user";
 
     @Override
     public UserRole getRole(Authentication authentication) {
@@ -63,6 +64,6 @@ public final class AuthDetailsFinder implements UserDetailsFinder {
     }
 
     private boolean isAdmin(Optional<Collection<String>> scope) {
-        return scope.map(s -> s.contains(ADMIN_ROLE)).orElse(false);
+        return scope.map(s -> s.contains(ADMIN_GROUP)).orElse(false);
     }
 }

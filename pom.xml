@@ -31,7 +31,7 @@
         <dependency>
             <groupId>org.trustedanalytics</groupId>
             <artifactId>uaa-lib</artifactId>
-            <version>0.4.0</version>
+            <version>0.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
