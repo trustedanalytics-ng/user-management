@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.trustedanalytics.user.common.BlacklistEmailValidator;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.invite.InvitationNotSentException;
@@ -44,6 +45,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @RestController
+@ControllerAdvice
 @RequestMapping("/rest/invitations")
 public class InvitationsController {
 
@@ -77,13 +79,14 @@ public class InvitationsController {
             value = "Add a new invitation for email.",
             notes = "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK", response = ErrorDescriptionModel.class),
+            @ApiResponse(code = 201, message = "OK", response = ErrorDescriptionModel.class),
             @ApiResponse(code = 409, message = "Invalid email format."),
             @ApiResponse(code = 409, message = "User already exists."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(method = RequestMethod.POST)
     @PreAuthorize(IS_ADMIN_CONDITION)
+    @ResponseStatus(HttpStatus.CREATED)
     public ErrorDescriptionModel addInvitation(@RequestBody InvitationModel invitation,
                                                @ApiParam(hidden = true) Authentication authentication) {
 
@@ -140,12 +143,13 @@ public class InvitationsController {
             value = "Delete an invitation.",
             notes = "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope ")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "OK"),
+            @ApiResponse(code = 204, message = "OK"),
             @ApiResponse(code = 404, message = "Invitation not found."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(value = DELETE_INVITATION_URL, method = RequestMethod.DELETE)
     @PreAuthorize(IS_ADMIN_CONDITION)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteInvitation(@PathVariable("email") String email) {
         invitationsService.deleteInvitation(email);
     }
