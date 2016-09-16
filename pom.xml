@@ -239,7 +239,7 @@
                 <configuration>
                     <imageName>${docker.imageName}</imageName>
                     <baseImage>${docker.registry}/tap-base-java:java8-jessie</baseImage>
-                    <cmd>["java", "-jar", "/${project.build.finalName}.jar"]</cmd>
+                    <cmd>java $JAVA_OPTS -jar ${project.build.finalName}.jar</cmd>
                     <resources>
                         <resource>
                             <targetPath>/</targetPath>
@@ -248,8 +248,8 @@
                         </resource>
                     </resources>
                     <env>
-                        <PORT>80</PORT>
-                        <JAVA_OPTS>-Xmx500m</JAVA_OPTS>                        
+                        <PORT>8080</PORT>
+                        <JAVA_OPTS>-Xss228k -Xmx512m -XX:MetaspaceSize=128m</JAVA_OPTS>
                     </env>
                     <useConfigFile>true</useConfigFile>
                 </configuration>
