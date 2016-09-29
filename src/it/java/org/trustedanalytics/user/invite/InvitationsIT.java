@@ -140,7 +140,7 @@ public class InvitationsIT {
             postForEntityWithToken(restTemplate, TOKEN, baseUrl + "rest/invitations", invitation,
                     String.class);
 
-        assertEquals(response.getStatusCode(), HttpStatus.OK);
+        assertEquals(response.getStatusCode(), HttpStatus.CREATED);
 
         verify(mailSender).send(any(MimeMessage.class));
         verify(mimeMessage).addRecipients(any(Message.RecipientType.class), eq(INVITATION_MAIL));
