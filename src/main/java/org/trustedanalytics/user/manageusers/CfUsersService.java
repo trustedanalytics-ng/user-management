@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.user.manageusers;
 
+import com.google.common.collect.ImmutableMap;
 import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.uaa.UaaOperations;
@@ -22,13 +23,12 @@ import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.user.common.EntityNotFoundException;
 import org.trustedanalytics.user.current.AuthDetailsFinder;
 import org.trustedanalytics.user.invite.InvitationsService;
+import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.model.User;
 import org.trustedanalytics.user.model.UserRole;
 
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CfUsersService implements UsersService {
@@ -66,7 +66,8 @@ public class CfUsersService implements UsersService {
     public Optional<User> addOrgUser(UserRequest userRequest, UUID orgGuid, String currentUser) {
         Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
         if(!idNamePair.isPresent()) {
-            inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, userRequest.getRole());
+            UserRole role = Optional.ofNullable(userRequest.getRole()).orElse(UserRole.USER);
+            inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, role);
         }
         return idNamePair.map(pair -> {
             UUID userGuid = pair.getGuid();
@@ -99,6 +100,16 @@ public class CfUsersService implements UsersService {
             uaaClient.addUserToGroup(adminGroup, userGuid);
         }
         return role;
+    }
+
+    @Override
+    public void updateUserRolesInOrgs(String username, UUID uuid){
+        accessInvitationsService
+            .getAccessInvitations(username)
+            .map(AccessInvitations::getOrgAccessInvitations)
+            .orElse(Collections.emptyMap())
+            .forEach((orgGuid, role) ->
+                    updateOrgUserRole(uuid, orgGuid, role));
     }
 
     private ScimGroup getAdminGroup() {

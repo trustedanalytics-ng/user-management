@@ -30,4 +30,6 @@ public interface UsersService {
     void deleteUserFromOrg(UUID userGuid, UUID orgId);
 
     UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role);
+
+    void updateUserRolesInOrgs(String username, UUID uuid);
 }

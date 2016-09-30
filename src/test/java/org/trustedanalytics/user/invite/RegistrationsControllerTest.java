@@ -29,6 +29,7 @@ import org.trustedanalytics.user.common.EmptyPasswordException;
 import org.trustedanalytics.user.common.EntityNotFoundException;
 import org.trustedanalytics.user.common.TooShortPasswordException;
 import org.trustedanalytics.user.common.UserPasswordValidator;
+import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.invite.rest.InvitationModel;
 import org.trustedanalytics.user.invite.rest.RegistrationModel;
@@ -36,6 +37,8 @@ import org.trustedanalytics.user.invite.rest.RegistrationsController;
 import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeException;
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.UsersService;
+import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -50,6 +53,7 @@ public class RegistrationsControllerTest {
 
     private static final String USER_EMAIL = "email@example.com";
     private static final String SECURITY_CODE = "code";
+    private static final UUID CORE_GUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     private RegistrationsController sut;
 
@@ -60,6 +64,9 @@ public class RegistrationsControllerTest {
     private InvitationsService invitationsService;
 
     @Mock
+    private UsersService priviledgedUsersService;
+
+    @Mock
     private AccessInvitationsService accessInvitationsService;
 
     private UserPasswordValidator passwordValidator = new UserPasswordValidator();
@@ -67,7 +74,7 @@ public class RegistrationsControllerTest {
     @Before
     public void setUp() throws Exception {
         sut = new RegistrationsController(securityCodeService, invitationsService,
-                                            accessInvitationsService, passwordValidator);
+                                            accessInvitationsService, passwordValidator, priviledgedUsersService);
     }
 
     @Test(expected = InvalidSecurityCodeException.class)
@@ -166,6 +173,10 @@ public class RegistrationsControllerTest {
         UUID userGuid = UUID.randomUUID();
         when(invitationsService.createUser(USER_EMAIL, userPassword)).thenReturn(Optional.of(userGuid));
 
+        AccessInvitations accessInvitations = new AccessInvitations();
+        accessInvitations.getOrgAccessInvitations().put(CORE_GUID, UserRole.ADMIN);
+        when(accessInvitationsService
+                .getAccessInvitations(USER_EMAIL)).thenReturn(Optional.of(accessInvitations));
         registration.setPassword(userPassword);
 
         RegistrationModel registeredUser = sut.addUser(registration, SECURITY_CODE);

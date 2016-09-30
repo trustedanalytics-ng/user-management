@@ -33,6 +33,7 @@ import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.invite.securitycode.InvalidSecurityCodeException;
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.UsersService;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -45,16 +46,19 @@ public class RegistrationsController {
     private final InvitationsService invitationsService;
     private final AccessInvitationsService accessInvitationsService;
     private final UserPasswordValidator userPasswordValidator;
+    private final UsersService priviledgedUsersService;
 
     @Autowired
     public RegistrationsController(SecurityCodeService securityCodeService,
                                    InvitationsService invitationsService,
                                    AccessInvitationsService accessInvitationsService,
-                                   UserPasswordValidator userPasswordValidator) {
+                                   UserPasswordValidator userPasswordValidator,
+                                   UsersService priviledgedUsersService) {
         this.securityCodeService = securityCodeService;
         this.invitationsService = invitationsService;
         this.accessInvitationsService = accessInvitationsService;
         this.userPasswordValidator = userPasswordValidator;
+        this.priviledgedUsersService = priviledgedUsersService;
     }
 
     @ApiOperation(
@@ -78,8 +82,13 @@ public class RegistrationsController {
         SecurityCode sc = securityCodeService.verify(code);
         userPasswordValidator.validate(newUser.getPassword());
         String email = sc.getEmail();
-        Optional<UUID> userGuid = invitationsService.createUser(email, newUser.getPassword());
-        userGuid.ifPresent(u -> newUser.setUserGuid(u.toString()));
+        invitationsService
+            .createUser(email, newUser.getPassword())
+            .ifPresent(uuid -> {
+                newUser.setUserGuid(uuid.toString());
+                priviledgedUsersService.updateUserRolesInOrgs(email, uuid);
+         });
+
         securityCodeService.redeem(sc);
         accessInvitationsService.redeemAccessInvitations(email);
 
