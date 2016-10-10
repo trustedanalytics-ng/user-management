@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>user-management</artifactId>
-    <version>0.7.5</version>
+    <version>0.7.6</version>
     <parent>
         <groupId>org.trustedanalytics</groupId>
         <artifactId>trustedanalytics-cloud-parent</artifactId>
@@ -123,7 +123,7 @@
     </dependencies>
 
     <properties>
-        <start-class>org.trustedanalytics.user.Application</start-class>
+        <start-class>org.trustedanalytics.usermanagement.Application</start-class>
         <java.version>1.8</java.version>
         <jacoco-measurement-instructions>0.3000</jacoco-measurement-instructions>
         <jacoco-measurement-branches>0.2500</jacoco-measurement-branches>
@@ -271,6 +271,28 @@
                     </env>
                     <useConfigFile>true</useConfigFile>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>api-model</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <classifier>api-model</classifier>
+                            <includes>
+                                <include>**/usermanagement/invitations/model/*</include>
+                                <include>**/usermanagement/orgs/model/*</include>
+                                <include>**/usermanagement/security/model/*</include>
+                                <include>**/usermanagement/summary/model/*</include>
+                                <include>**/usermanagement/users/model/*</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
