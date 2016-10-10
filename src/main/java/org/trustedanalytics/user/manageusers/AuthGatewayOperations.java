@@ -25,7 +25,25 @@ public interface AuthGatewayOperations {
     @RequestLine("PUT /organizations/{orgId}/users/{userId}")
     UserState createUser(@Param("orgId") String orgId, @Param("userId") String userId);
 
+    default UserState createUser(String orgId, String userId, Fallback fallback) {
+        try {
+            return createUser(orgId, userId);
+        } catch (Throwable ex) {
+            fallback.accept(ex);
+            throw new IllegalStateException(String.format("unable to add user %s to cdh", userId), ex);
+        }
+    }
+
     @RequestLine("DELETE /organizations/{orgId}/users/{userId}")
     UserState deleteUser(@Param("orgId") String orgId, @Param("userId") String userId);
+
+    default UserState deleteUser(String orgId, String userId, Fallback fallback) {
+        try {
+            return deleteUser(orgId, userId);
+        } catch (Throwable ex) {
+            fallback.accept(ex);
+            throw new IllegalStateException(String.format("unable to delete user %s from cdh", userId), ex);
+        }
+    }
 
 }

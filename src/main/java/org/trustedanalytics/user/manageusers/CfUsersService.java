@@ -15,9 +15,6 @@
  */
 package org.trustedanalytics.user.manageusers;
 
-import com.google.common.collect.ImmutableMap;
-import org.cloudfoundry.identity.uaa.scim.ScimGroup;
-import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.user.common.EntityNotFoundException;
@@ -28,7 +25,13 @@ import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.model.User;
 import org.trustedanalytics.user.model.UserRole;
 
-import java.util.*;
+import org.cloudfoundry.identity.uaa.scim.ScimGroup;
+import org.cloudfoundry.identity.uaa.scim.ScimUser;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class CfUsersService implements UsersService {
@@ -92,8 +95,8 @@ public class CfUsersService implements UsersService {
         if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
             throw new EntityNotFoundException("The user does not exist", null);
         }
-        authGatewayOperations.deleteUser(orgGuid.toString(), userGuid.toString());
         uaaClient.deleteUser(userGuid);
+        authGatewayOperations.deleteUser(orgGuid.toString(), userGuid.toString());
     }
 
     @Override

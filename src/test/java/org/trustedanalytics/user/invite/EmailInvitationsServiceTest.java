@@ -15,8 +15,25 @@
  */
 package org.trustedanalytics.user.invite;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.trustedanalytics.uaa.UaaOperations;
+import org.trustedanalytics.uaa.UserIdNamePair;
+import org.trustedanalytics.user.invite.access.AccessInvitations;
+import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.invite.keyvaluestore.KeyValueStore;
+import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
+import org.trustedanalytics.user.manageusers.Fallback;
+import org.trustedanalytics.user.manageusers.UserState;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
+import org.trustedanalytics.user.model.UserRole;
+
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -30,21 +47,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.spring4.SpringTemplateEngine;
-import org.trustedanalytics.uaa.UaaOperations;
-import org.trustedanalytics.uaa.UserIdNamePair;
-import org.trustedanalytics.user.invite.access.AccessInvitations;
-import org.trustedanalytics.user.invite.access.AccessInvitationsService;
-import org.trustedanalytics.user.invite.keyvaluestore.KeyValueStore;
-import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
-import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
-import org.trustedanalytics.user.manageusers.UserState;
-import org.trustedanalytics.user.mocks.OrganizationResourceMock;
-import org.trustedanalytics.user.model.UserRole;
 
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.mockito.Mockito.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = {EmailInvitationsServiceTest.EmailInvitationsServiceTestConfiguration.class})
@@ -64,6 +69,9 @@ public class EmailInvitationsServiceTest {
 
     @Autowired
     private AuthGatewayOperations authGatewayOperations;
+
+    @Rule
+    public ExpectedException exception = ExpectedException.none();
 
     @Configuration
     @Profile("unit-test")
@@ -96,7 +104,8 @@ public class EmailInvitationsServiceTest {
         @Bean
         public AuthGatewayOperations authGatewayOperations() {
             final AuthGatewayOperations authGatewayOperations = mock(AuthGatewayOperations.class);
-            when(authGatewayOperations.createUser(OrganizationResourceMock.get().getGuid().toString(), USER_ID)).thenReturn(new UserState(SAMPLE_EMAIL_ADDRESS, USER_ID, true));
+            final String orgId = OrganizationResourceMock.get().getGuid().toString();
+            when(authGatewayOperations.createUser(orgId, USER_ID, mock(Fallback.class))).thenReturn(new UserState(SAMPLE_EMAIL_ADDRESS, USER_ID, true));
             return authGatewayOperations;
         }
 
@@ -135,17 +144,13 @@ public class EmailInvitationsServiceTest {
         final InOrder inOrder = inOrder(uaaPrivilegedClient, authGatewayOperations);
 
         inOrder.verify(uaaPrivilegedClient).createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
-        inOrder.verify(authGatewayOperations).createUser(OrganizationResourceMock.get().getGuid().toString(), userGuid.get().toString());
+        inOrder.verify(authGatewayOperations).createUser(eq(OrganizationResourceMock.get().getGuid().toString()), eq(userGuid.get().toString()), any());
     }
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void createUser_userExists_throwUserExistException() {
-
         exception.expect(UserExistsException.class);
-        sut.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, PASSWORD);
 
+        sut.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, PASSWORD);
     }
 }

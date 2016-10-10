@@ -33,7 +33,7 @@ import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-public class ApplicationConfiguration {
+public class AuthGatewayConfiguration {
 
     @Value("${authgateway.host}")
     private String authGatewayUrl;
