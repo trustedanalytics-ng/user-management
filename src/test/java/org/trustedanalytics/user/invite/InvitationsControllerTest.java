@@ -30,6 +30,7 @@ import org.trustedanalytics.user.invite.rest.ErrorDescriptionModel;
 import org.trustedanalytics.user.invite.rest.InvitationModel;
 import org.trustedanalytics.user.invite.rest.InvitationsController;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +67,7 @@ public class InvitationsControllerTest {
 
     @Mock
     private AccessInvitationsService accessInvitationsService;
+
 
     @Before
     public void setUp() throws Exception {

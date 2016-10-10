@@ -36,14 +36,17 @@ public class CfUsersService implements UsersService {
     private final UaaOperations uaaClient;
     private final InvitationsService invitationsService;
     private final AccessInvitationsService accessInvitationsService;
+    private final AuthGatewayOperations authGatewayOperations;
 
     public CfUsersService(UaaOperations uaaClient,
                           InvitationsService invitationsService,
-                          AccessInvitationsService accessInvitationsService) {
+                          AccessInvitationsService accessInvitationsService,
+                          AuthGatewayOperations authGatewayOperations) {
         super();
         this.uaaClient = uaaClient;
         this.invitationsService = invitationsService;
         this.accessInvitationsService = accessInvitationsService;
+        this.authGatewayOperations = authGatewayOperations;
     }
 
     @Override
@@ -71,6 +74,7 @@ public class CfUsersService implements UsersService {
         }
         return idNamePair.map(pair -> {
             UUID userGuid = pair.getGuid();
+            authGatewayOperations.createUser(orgGuid.toString(), userGuid.toString());
             return new User(userGuid, userRequest.getUsername(), userRequest.getRole());
         });
     }
@@ -88,6 +92,7 @@ public class CfUsersService implements UsersService {
         if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
             throw new EntityNotFoundException("The user does not exist", null);
         }
+        authGatewayOperations.deleteUser(orgGuid.toString(), userGuid.toString());
         uaaClient.deleteUser(userGuid);
     }
 

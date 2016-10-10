@@ -25,6 +25,7 @@ import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
@@ -45,6 +46,7 @@ import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.invite.rest.InvitationModel;
 import org.trustedanalytics.user.invite.rest.RegistrationModel;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
 
 import javax.mail.Address;
 import javax.mail.Message;

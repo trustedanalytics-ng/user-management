@@ -32,7 +32,7 @@ import org.trustedanalytics.auth.AuthTokenRetriever;
 import org.trustedanalytics.auth.HeaderAddingHttpInterceptor;
 import org.trustedanalytics.uaa.UaaClient;
 import org.trustedanalytics.uaa.UaaOperations;
-import org.trustedanalytics.user.common.OAuth2PriviligedInterceptor;
+import org.trustedanalytics.user.common.OAuth2PrivilegedInterceptor;
 import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 
@@ -53,8 +53,8 @@ public class UsersConfig {
     private AuthTokenRetriever tokenRetriever;
 
     @Bean
-    protected OAuth2PriviligedInterceptor oauth2PrivilegedInterceptor(OAuth2ProtectedResourceDetails clientCredentials) {
-        return new OAuth2PriviligedInterceptor(clientCredentials);
+    protected OAuth2PrivilegedInterceptor oauth2PrivilegedInterceptor(OAuth2ProtectedResourceDetails clientCredentials) {
+        return new OAuth2PrivilegedInterceptor(clientCredentials);
     }
 
     @Bean
@@ -93,18 +93,21 @@ public class UsersConfig {
     @Bean
     protected UsersService usersService(UaaOperations uaaClient,
                                         InvitationsService invitationsService,
-                                        AccessInvitationsService accessInvitationsService) {
-        return new CfUsersService(uaaClient, invitationsService, accessInvitationsService);
+                                        AccessInvitationsService accessInvitationsService,
+                                        AuthGatewayOperations authGatewayOperations) {
+        return new CfUsersService(uaaClient, invitationsService, accessInvitationsService, authGatewayOperations);
     }
 
     @Bean
     protected UsersService priviledgedUsersService(UaaOperations uaaPrivilegedClient,
                                                    InvitationsService invitationsService,
-                                                   AccessInvitationsService accessInvitationsService) {
+                                                   AccessInvitationsService accessInvitationsService,
+                                                   AuthGatewayOperations authGatewayOperations) {
         return new CfUsersService(
                 uaaPrivilegedClient,
                 invitationsService,
-                accessInvitationsService);
+                accessInvitationsService,
+                authGatewayOperations);
     }
 
 

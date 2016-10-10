@@ -27,6 +27,7 @@ import org.trustedanalytics.auth.AuthTokenRetriever;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.user.common.BlacklistEmailValidator;
 import org.trustedanalytics.user.common.FormatUserRolesValidator;
+import org.trustedanalytics.user.common.OAuth2PrivilegedInterceptor;
 import org.trustedanalytics.user.common.UserPasswordValidator;
 import org.trustedanalytics.user.current.UserDetailsFinder;
 import org.trustedanalytics.user.invite.EmailInvitationsService;
@@ -37,6 +38,7 @@ import org.trustedanalytics.user.invite.MessageService;
 import org.trustedanalytics.user.invite.SecurityDisabler;
 import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
 import org.trustedanalytics.user.manageusers.UsersService;
 import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
@@ -108,6 +110,16 @@ public class TestConfiguration {
     @Bean
     public MessageService service() throws UnsupportedEncodingException{
         return new EmailService(mailSender(), SUPPORT_EMAIL, EMAIL_NAME);
+    }
+
+    @Bean
+    public AuthGatewayOperations authGatewayOperations() {
+        return mock(AuthGatewayOperations.class);
+    }
+
+    @Bean
+    public OAuth2PrivilegedInterceptor oAuth2PrivilegedInterceptor() {
+        return mock(OAuth2PrivilegedInterceptor.class);
     }
 
     @Bean

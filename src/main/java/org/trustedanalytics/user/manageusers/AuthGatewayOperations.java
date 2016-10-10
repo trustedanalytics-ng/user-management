@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,26 +13,19 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.access;
+package org.trustedanalytics.user.manageusers;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.trustedanalytics.user.model.UserRole;
+import feign.Headers;
+import feign.Param;
+import feign.RequestLine;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+@Headers("Accept: application/json")
+public interface AuthGatewayOperations {
 
-public class AccessInvitations {
+    @RequestLine("PUT /organizations/{orgId}/users/{userId}")
+    UserState createUser(@Param("orgId") String orgId, @Param("userId") String userId);
 
-    @Getter
-    private Map<UUID, UserRole> orgAccessInvitations;
+    @RequestLine("DELETE /organizations/{orgId}/users/{userId}")
+    UserState deleteUser(@Param("orgId") String orgId, @Param("userId") String userId);
 
-    public AccessInvitations() {
-        this.orgAccessInvitations = new HashMap<>();
-    }
-
-    public void addOrgAccessInvitation(UUID uuid, UserRole role) {
-        this.orgAccessInvitations.put(uuid, role);
-    }
 }

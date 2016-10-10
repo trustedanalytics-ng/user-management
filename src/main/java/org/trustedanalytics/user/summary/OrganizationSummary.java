@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,26 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.access;
+package org.trustedanalytics.user.summary;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import org.trustedanalytics.user.model.UserRole;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import lombok.Data;
+import org.trustedanalytics.user.model.User;
 
-public class AccessInvitations {
+import java.util.Collection;
 
-    @Getter
-    private Map<UUID, UserRole> orgAccessInvitations;
+@Data
+public class OrganizationSummary {
 
-    public AccessInvitations() {
-        this.orgAccessInvitations = new HashMap<>();
-    }
-
-    public void addOrgAccessInvitation(UUID uuid, UserRole role) {
-        this.orgAccessInvitations.put(uuid, role);
-    }
+    private String guid;
+    private String name;
+    private Collection<User> users;
 }

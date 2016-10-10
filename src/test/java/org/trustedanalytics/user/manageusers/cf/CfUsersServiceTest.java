@@ -20,18 +20,24 @@ import org.cloudfoundry.identity.uaa.scim.ScimGroup;
 import org.cloudfoundry.identity.uaa.scim.ScimGroupMember;
 import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.web.client.RestClientException;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.user.common.EntityNotFoundException;
 import org.trustedanalytics.user.current.AuthDetailsFinder;
 import org.trustedanalytics.user.invite.InvitationsService;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
 import org.trustedanalytics.user.manageusers.CfUsersService;
 import org.trustedanalytics.user.manageusers.UserRequest;
+import org.trustedanalytics.user.manageusers.UserState;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 import org.trustedanalytics.user.model.Org;
 import org.trustedanalytics.user.model.User;
 import org.trustedanalytics.user.model.UserRole;
@@ -52,9 +58,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CfUsersServiceTest {
@@ -80,6 +84,9 @@ public class CfUsersServiceTest {
     @Mock
     private SearchResults<ScimUser> scimUserSearchResults;
 
+    @Mock
+    private AuthGatewayOperations authGatewayOperations;
+
     class UserComparator implements Comparator<User> {
         @Override
         public int compare(User o1, User o2) {
@@ -97,7 +104,7 @@ public class CfUsersServiceTest {
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
         existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
 
-        sut = new CfUsersService(uaaOperations, invitationService, accessInvitationsService);
+        sut = new CfUsersService(uaaOperations, invitationService, accessInvitationsService, authGatewayOperations);
     }
 
     @Test
@@ -123,6 +130,7 @@ public class CfUsersServiceTest {
         verify(accessInvitationsService).createOrUpdateInvitation(eq(userToAdd), any());
         verify(invitationService).sendInviteEmail(userToAdd, currentUser);
         verify(uaaOperations, never()).createUser(any(), any());
+        verify(authGatewayOperations, never()).createUser(any(), any());
         assertFalse(resultUser.isPresent());
     }
 
@@ -131,10 +139,11 @@ public class CfUsersServiceTest {
         UserIdNamePair idNamePair = UserIdNamePair.of(testUser.getGuid(), testUser.getUsername());
         when(uaaOperations.findUserIdByName(testUser.getUsername())).thenReturn(Optional.ofNullable(idNamePair));
 
-        Optional<User> resultUser =
-                sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), UUID.randomUUID(), "admin_test");
+        final UUID orgGuid = UUID.randomUUID();
+        Optional<User> resultUser = sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgGuid, "admin_test");
 
         verify(accessInvitationsService, never()).createOrUpdateInvitation(any(), any());
+        verify(authGatewayOperations, times(1)).createUser(orgGuid.toString(), resultUser.get().getGuid().toString());
         assertTrue(resultUser.isPresent());
         assertEquals(testUser, resultUser.get());
     }
@@ -144,8 +153,10 @@ public class CfUsersServiceTest {
         when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
-        sut.deleteUserFromOrg(testUser.getGuid(), UUID.randomUUID());
+        final UUID orgGuid = UUID.randomUUID();
+        sut.deleteUserFromOrg(testUser.getGuid(), orgGuid);
 
+        verify(authGatewayOperations, times(1)).deleteUser(orgGuid.toString(), testUser.getGuid().toString());
         verify(uaaOperations).deleteUser(testUser.getGuid());
     }
 

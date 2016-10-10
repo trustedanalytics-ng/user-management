@@ -22,9 +22,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.trustedanalytics.uaa.UaaOperations;
+import org.trustedanalytics.user.invite.access.AccessInvitations;
 import org.trustedanalytics.user.invite.access.AccessInvitationsService;
 import org.trustedanalytics.user.invite.securitycode.SecurityCode;
 import org.trustedanalytics.user.invite.securitycode.SecurityCodeService;
+import org.trustedanalytics.user.manageusers.AuthGatewayOperations;
+import org.trustedanalytics.user.mocks.OrganizationResourceMock;
 
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +53,9 @@ public class EmailInvitationsService implements InvitationsService {
 
     @Autowired
     private InvitationLinkGenerator invitationLinkGenerator;
+
+    @Autowired
+    private AuthGatewayOperations authGatewayOperations;
 
     public EmailInvitationsService(SpringTemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
@@ -121,6 +127,7 @@ public class EmailInvitationsService implements InvitationsService {
         return accessInvitationsService.getAccessInvitations(username)
                 .map(invitations -> {
                     final ScimUser user = uaaPrivilegedClient.createUser(username, password);
+                    authGatewayOperations.createUser(OrganizationResourceMock.get().getGuid().toString(), user.getId());
                     return UUID.fromString(user.getId());
                 });
     }

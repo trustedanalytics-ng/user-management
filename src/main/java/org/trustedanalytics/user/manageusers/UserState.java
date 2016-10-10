@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,26 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.trustedanalytics.user.invite.access;
+package org.trustedanalytics.user.manageusers;
 
-import lombok.Getter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.trustedanalytics.user.model.UserRole;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserState {
 
-public class AccessInvitations {
-
-    @Getter
-    private Map<UUID, UserRole> orgAccessInvitations;
-
-    public AccessInvitations() {
-        this.orgAccessInvitations = new HashMap<>();
-    }
-
-    public void addOrgAccessInvitation(UUID uuid, UserRole role) {
-        this.orgAccessInvitations.put(uuid, role);
-    }
+    @JsonProperty("name")
+    private String name;
+    @JsonProperty("guid")
+    private String guid;
+    @JsonProperty("synchronized")
+    private boolean synchronizedState;
 }

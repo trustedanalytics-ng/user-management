@@ -75,6 +75,8 @@ public class OrgsController {
         throw new NotImplementedException();
     }
 
+    //TODO send requests to auth-gateway in case of creating or removing organization
+    
     @ApiOperation(value = "Deleting organization is not supported in this application version")
     @ApiResponses(value = {
             @ApiResponse(code = 501, message = "Deleting organization is not supported in this application version")

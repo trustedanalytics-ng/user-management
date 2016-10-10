@@ -35,6 +35,9 @@ redis:
   host: localhost
   port: 6379
 
+authgateway:
+   host: ${authgateway.host}
+
 web:
   debug: false
 
