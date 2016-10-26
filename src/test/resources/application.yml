@@ -4,6 +4,10 @@ server:
 security:
   ignored: /rest/registrations/*,/rest/registrations,/new-account*,/rest/orgs/**
 
+metrics:
+  name: tap_usermanagement_counts
+  delay: 15000
+
 logging:
   level:
     org.trustedanalytics: DEBUG

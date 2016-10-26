@@ -1,7 +1,7 @@
 server:
   port: ${port:9998}
 security:
-  ignored: /rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*
+  ignored: /metrics,/rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*
 
 spring.oauth2:
   client:
@@ -36,12 +36,19 @@ redis:
   port: 6379
 
 authgateway:
-   host: ${authgateway.host}
+  host: ${authgateway.host}
 
 web:
   debug: false
 
-endpoints.health.enabled: true
+endpoints:
+  health.enabled: true
+  prometheus.id: metrics
+  metrics.id: springmetrics
+
+metrics:
+  name: tap_usermanagement_counts
+  delay: 15000
 
 spring.profiles.active: cloud,in-memory
 
