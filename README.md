@@ -10,7 +10,16 @@ The primary responsibility of this service is the management of users in the pla
 * Org SysOp invitation. Org SysOp can create new accounts for org users and send email with instructions how to log in.
 
 The service allows for SysOps not only invite new users, but also remove them and give them a role inside organization.
-All of these operations are performed against UAA and Cloud Controller.
+All of these operations are performed against UAA and Auth-gateway.
+
+Request flow
+-----------------
+![](docs/user-management-add-user-flow.png)
+Please note that diagram presents simplified flow by not including the part where user receives email with invitation. After clicking the
+link the process of adding user to organization starts. In case of 0.8 version we are supporting only one organization and therefore inviting
+user to the platform is the same as adding user to the organization.
+In case of any failures we try to keep consistent state and therefore failure when synchronizing user permissions with hadoop implies removing
+him from uaa.
 
 Required services
 -----------------
@@ -24,7 +33,7 @@ Required libraries
 -----------------
 Following libraries are necessary to successfully build user-management:
 
-* **cf-client** - separate library to communicate with cloud foundry layer.
+* **uaa-lib** - separate library to communicate with uaa.
 
 Security
 --------
