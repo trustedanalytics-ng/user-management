@@ -18,11 +18,15 @@ package org.trustedanalytics.usermanagement.users.rest;
 import feign.Headers;
 import feign.Param;
 import feign.RequestLine;
+import feign.Response;
 import org.trustedanalytics.usermanagement.invitations.service.Fallback;
 import org.trustedanalytics.usermanagement.users.model.UserState;
 
 @Headers("Accept: application/json")
 public interface AuthGatewayOperations {
+
+    @RequestLine("GET /health")
+    Response getHealth();
 
     @RequestLine("PUT /organizations/{orgId}/users/{userId}")
     UserState createUser(@Param("orgId") String orgId, @Param("userId") String userId);
