@@ -1,0 +1,804 @@
+{
+	"swagger" : "2.0",
+	"info" : {
+		"description" : "Api endpoints for managing users and organizations in TAP",
+		"title" : "User Management API",
+		"license" : {
+			"name" : "Apache License Version 2.0",
+			"url" : "https://github.com/trustedanalytics/user-management/blob/master/LICENSE.txt"
+		}
+	},
+	"host" : "10.10.207.205",
+	"basePath" : "/",
+	"tags" : [{
+			"name" : "authorization-controller",
+			"description" : "Authorization Controller"
+		}, {
+			"name" : "current-user-controller",
+			"description" : "Current User Controller"
+		}, {
+			"name" : "users-controller",
+			"description" : "Users Controller"
+		}, {
+			"name" : "orgs-controller",
+			"description" : "Orgs Controller"
+		}, {
+			"name" : "registrations-controller",
+			"description" : "Registrations Controller"
+		}, {
+			"name" : "summary-controller",
+			"description" : "Summary Controller"
+		}, {
+			"name" : "invitations-controller",
+			"description" : "Invitations Controller"
+		}
+	],
+	"paths" : {
+		"/rest/invitations" : {
+			"get" : {
+				"tags" : ["invitations-controller"],
+				"summary" : "Get pending invitations.",
+				"description" : "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope ",
+				"operationId" : "getPendingInvitationsUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "array",
+							"items" : {
+								"type" : "string"
+							}
+						}
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					}
+				}
+			},
+			"post" : {
+				"tags" : ["invitations-controller"],
+				"summary" : "Add a new invitation for email.",
+				"description" : "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope",
+				"operationId" : "addInvitationUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "invitation",
+						"description" : "invitation",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/Invitation"
+						}
+					}
+				],
+				"responses" : {
+					"201" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/InvitationErrorDescription"
+						}
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"409" : {
+						"description" : "Invalid email format."
+					}
+				}
+			}
+		},
+		"/rest/invitations/{email}" : {
+			"delete" : {
+				"tags" : ["invitations-controller"],
+				"summary" : "Delete an invitation.",
+				"description" : "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope ",
+				"operationId" : "deleteInvitationUsingDELETE",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "email",
+						"in" : "path",
+						"description" : "email",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"204" : {
+						"description" : "OK"
+					},
+					"404" : {
+						"description" : "Invitation not found."
+					}
+				}
+			}
+		},
+		"/rest/invitations/{email}/resend" : {
+			"post" : {
+				"tags" : ["invitations-controller"],
+				"summary" : "Resend invitation to the email.",
+				"description" : "Privilege level: Consumer of this endpoint must have a valid token containing console.admin scope ",
+				"operationId" : "resendInvitationUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "email",
+						"in" : "path",
+						"description" : "email",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"404" : {
+						"description" : "Invitation not found."
+					}
+				}
+			}
+		},
+		"/rest/organizations/summary" : {
+			"get" : {
+				"tags" : ["summary-controller"],
+				"summary" : "getOrganizationsAndUsers",
+				"operationId" : "getOrganizationsAndUsersUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/PlatformSummary"
+						}
+					}
+				}
+			}
+		},
+		"/rest/organizations/{orgGuid}/summary" : {
+			"get" : {
+				"tags" : ["summary-controller"],
+				"summary" : "getOrganizationUsers",
+				"operationId" : "getOrganizationUsersUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+						"name" : "orgGuid",
+						"in" : "path",
+						"description" : "orgGuid",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/OrganizationSummary"
+						}
+					}
+				}
+			}
+		},
+		"/rest/orgs" : {
+			"get" : {
+				"tags" : ["orgs-controller"],
+				"summary" : "Returns list containing one organization",
+				"description" : "Privilege level: Any consumer of this endpoint must have a valid access token",
+				"operationId" : "getOrgsUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "array",
+							"items" : {
+								"$ref" : "#/definitions/Org"
+							}
+						}
+					}
+				}
+			},
+			"post" : {
+				"tags" : ["orgs-controller"],
+				"summary" : "Creating organization is not supported in this application version",
+				"operationId" : "createOrgUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "request",
+						"description" : "request",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/OrgNameRequest"
+						}
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "string"
+						}
+					},
+					"501" : {
+						"description" : "Creating organization is not supported in this application version"
+					}
+				}
+			}
+		},
+		"/rest/orgs/permissions" : {
+			"get" : {
+				"tags" : ["authorization-controller"],
+				"summary" : "Returns permissions for user within one organization",
+				"description" : "Privilege level: Any consumer of this endpoint must have a valid access token",
+				"operationId" : "getPermissionsUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "orgs",
+						"in" : "query",
+						"description" : "orgs",
+						"required" : false,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "array",
+							"items" : {
+								"$ref" : "#/definitions/OrgPermission"
+							}
+						}
+					},
+					"500" : {
+						"description" : "Internal server error"
+					}
+				}
+			}
+		},
+		"/rest/orgs/{org}" : {
+			"delete" : {
+				"tags" : ["orgs-controller"],
+				"summary" : "Deleting organization is not supported in this application version",
+				"operationId" : "deleteOrgUsingDELETE",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK"
+					},
+					"501" : {
+						"description" : "Deleting organization is not supported in this application version"
+					}
+				}
+			}
+		},
+		"/rest/orgs/{org}/name" : {
+			"put" : {
+				"tags" : ["orgs-controller"],
+				"summary" : "Renaming organization is not supported in this application version",
+				"operationId" : "renameOrgUsingPUT",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "request",
+						"description" : "request",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/OrgNameRequest"
+						}
+					}, {
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK"
+					},
+					"501" : {
+						"description" : "Renaming organization is not supported in this application version"
+					}
+				}
+			}
+		},
+		"/rest/orgs/{org}/users" : {
+			"get" : {
+				"tags" : ["users-controller"],
+				"summary" : "Returns list of users which has at least one role in the organization. NOTE: The CF role 'Users' is not included ",
+				"description" : "Privilege level: Consumer of this endpoint must be a member of specified organization based on valid access token",
+				"operationId" : "getOrgUsersUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "array",
+							"items" : {
+								"$ref" : "#/definitions/User"
+							}
+						}
+					},
+					"400" : {
+						"description" : "Request was malformed. eg. 'org' is not a valid UUID or organization withID 'org' doesn't exist"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					}
+				}
+			},
+			"post" : {
+				"tags" : ["users-controller"],
+				"summary" : "Sends invitations message for new users or returns user for existing one in organization.",
+				"description" : "Privilege level: Consumer of this endpoint must be a member of specified organization with OrgManager role, based on valid access token",
+				"operationId" : "createOrgUserUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "userRequest",
+						"description" : "userRequest",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/UserRequest"
+						}
+					}, {
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/User"
+						}
+					},
+					"400" : {
+						"description" : "Request was malformed. eg. 'org' is not a valid UUID or organization withID 'org' doesn't exist"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"409" : {
+						"description" : "Email is not valid or it belongs to forbidden domains."
+					}
+				}
+			}
+		},
+		"/rest/orgs/{org}/users/{user}" : {
+			"post" : {
+				"tags" : ["users-controller"],
+				"summary" : "Updates user roles in organization",
+				"description" : "Privilege level: Consumer of this endpoint must be a member of specified organization with OrgManager role, based on valid access token",
+				"operationId" : "updateOrgUserRoleUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "userRolesRequest",
+						"description" : "userRolesRequest",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/UserRolesRequest"
+						}
+					}, {
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}, {
+						"name" : "user",
+						"in" : "path",
+						"description" : "user",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"type" : "array",
+							"items" : {
+								"type" : "string",
+								"enum" : ["ADMIN", "USER"]
+							}
+						}
+					},
+					"400" : {
+						"description" : "Request was malformed. eg. 'org' is not a valid UUID or organization withID 'org' doesn't exist"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"404" : {
+						"description" : "User not found in organization."
+					},
+					"409" : {
+						"description" : "Roles should be specified."
+					}
+				}
+			},
+			"delete" : {
+				"tags" : ["users-controller"],
+				"summary" : "Deletes user from organization.",
+				"description" : "Privilege level: Consumer of this endpoint must be a member of specified organization with OrgManager role, based on valid access token",
+				"operationId" : "deleteUserFromOrgUsingDELETE",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "org",
+						"in" : "path",
+						"description" : "org",
+						"required" : true,
+						"type" : "string"
+					}, {
+						"name" : "user",
+						"in" : "path",
+						"description" : "user",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK"
+					},
+					"400" : {
+						"description" : "Request was malformed. eg. 'org' is not a valid UUID or organization withID 'org' doesn't exist"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"404" : {
+						"description" : "User 'user' not found in organization."
+					}
+				}
+			}
+		},
+		"/rest/registrations" : {
+			"post" : {
+				"tags" : ["registrations-controller"],
+				"summary" : "Registers new user using security code received in email message.",
+				"description" : "Privilege level: Consumer of this endpoint requires a valid one-time security code",
+				"operationId" : "addUserUsingPOST",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "newUser",
+						"description" : "newUser",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/Registration"
+						}
+					}, {
+						"name" : "code",
+						"in" : "query",
+						"description" : "code",
+						"required" : false,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/Registration"
+						}
+					},
+					"400" : {
+						"description" : "Invalid organization name."
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"403" : {
+						"description" : "Security code 'code' empty or null"
+					},
+					"409" : {
+						"description" : "Invalid password (empty or too short)."
+					}
+				}
+			}
+		},
+		"/rest/registrations/{code}" : {
+			"get" : {
+				"tags" : ["registrations-controller"],
+				"summary" : "Gets invitation using security code received in email message.",
+				"description" : "Privilege level: Consumer of this endpoint requires a valid one-time security code",
+				"operationId" : "getInvitationUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"parameters" : [{
+						"name" : "code",
+						"in" : "path",
+						"description" : "code",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/Invitation"
+						}
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"403" : {
+						"description" : "Security code 'code' empty or null"
+					}
+				}
+			}
+		},
+		"/rest/users/current" : {
+			"get" : {
+				"tags" : ["current-user-controller"],
+				"summary" : "Returns current user.",
+				"description" : "Privilege level: Any consumer of this endpoint must have a valid access token",
+				"operationId" : "getUserUsingGET",
+				"consumes" : ["application/json"],
+				"produces" : ["*/*"],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/User"
+						}
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					}
+				}
+			}
+		},
+		"/rest/users/current/password" : {
+			"put" : {
+				"tags" : ["current-user-controller"],
+				"summary" : "Changes password for current user.",
+				"description" : "Privilege level: Any consumer of this endpoint must have a valid access token",
+				"operationId" : "changePasswordUsingPUT",
+				"consumes" : ["application/json"],
+				"produces" : ["application/json"],
+				"parameters" : [{
+						"in" : "body",
+						"name" : "request",
+						"description" : "request",
+						"required" : true,
+						"schema" : {
+							"$ref" : "#/definitions/ChangePasswordRequest"
+						}
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "OK",
+						"schema" : {
+							"$ref" : "#/definitions/User"
+						}
+					},
+					"400" : {
+						"description" : "Password cannot be empty"
+					},
+					"500" : {
+						"description" : "Internal server error, e.g. error connecting to CloudController"
+					},
+					"409" : {
+						"description" : "Password too short"
+					}
+				}
+			}
+		}
+	},
+	"definitions" : {
+		"Collection«Org»" : {
+			"type" : "object",
+			"properties" : {
+				"empty" : {
+					"type" : "boolean"
+				}
+			}
+		},
+		"Collection«OrganizationSummary»" : {
+			"type" : "object",
+			"properties" : {
+				"empty" : {
+					"type" : "boolean"
+				}
+			}
+		},
+		"User" : {
+			"type" : "object",
+			"properties" : {
+				"guid" : {
+					"type" : "string"
+				},
+				"role" : {
+					"type" : "string",
+					"enum" : ["ADMIN", "USER"]
+				},
+				"username" : {
+					"type" : "string"
+				}
+			}
+		},
+		"Org" : {
+			"type" : "object",
+			"properties" : {
+				"guid" : {
+					"type" : "string"
+				},
+				"name" : {
+					"type" : "string"
+				}
+			}
+		},
+		"PlatformSummary" : {
+			"type" : "object",
+			"properties" : {
+				"organizations" : {
+					"$ref" : "#/definitions/Collection«OrganizationSummary»"
+				}
+			}
+		},
+		"OrganizationSummary" : {
+			"type" : "object",
+			"properties" : {
+				"guid" : {
+					"type" : "string"
+				},
+				"name" : {
+					"type" : "string"
+				},
+				"users" : {
+					"$ref" : "#/definitions/Collection«User»"
+				}
+			}
+		},
+		"OrgNameRequest" : {
+			"type" : "object",
+			"properties" : {
+				"name" : {
+					"type" : "string"
+				}
+			}
+		},
+		"Invitation" : {
+			"type" : "object",
+			"properties" : {
+				"email" : {
+					"type" : "string"
+				}
+			}
+		},
+		"Collection«User»" : {
+			"type" : "object",
+			"properties" : {
+				"empty" : {
+					"type" : "boolean"
+				}
+			}
+		},
+		"InvitationErrorDescription" : {
+			"type" : "object",
+			"properties" : {
+				"details" : {
+					"type" : "string"
+				},
+				"state" : {
+					"type" : "string",
+					"enum" : ["NEW", "UPDATED", "ERROR"]
+				}
+			}
+		},
+		"UserRolesRequest" : {
+			"type" : "object",
+			"properties" : {
+				"role" : {
+					"type" : "string",
+					"enum" : ["ADMIN", "USER"]
+				}
+			}
+		},
+		"ChangePasswordRequest" : {
+			"type" : "object",
+			"properties" : {
+				"oldPassword" : {
+					"type" : "string"
+				},
+				"password" : {
+					"type" : "string"
+				}
+			}
+		},
+		"Collection«OrgPermission»" : {
+			"type" : "object",
+			"properties" : {
+				"empty" : {
+					"type" : "boolean"
+				}
+			}
+		},
+		"OrgPermission" : {
+			"type" : "object",
+			"properties" : {
+				"admin" : {
+					"type" : "boolean"
+				},
+				"org" : {
+					"$ref" : "#/definitions/Org"
+				},
+				"user" : {
+					"type" : "boolean"
+				}
+			}
+		},
+		"Registration" : {
+			"type" : "object",
+			"properties" : {
+				"password" : {
+					"type" : "string"
+				},
+				"userGuid" : {
+					"type" : "string"
+				}
+			}
+		},
+		"UserRequest" : {
+			"type" : "object",
+			"properties" : {
+				"role" : {
+					"type" : "string",
+					"enum" : ["ADMIN", "USER"]
+				},
+				"username" : {
+					"type" : "string"
+				}
+			}
+		}
+	}
+}
