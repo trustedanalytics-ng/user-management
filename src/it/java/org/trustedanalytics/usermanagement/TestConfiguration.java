@@ -37,7 +37,7 @@ import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.security.OAuth2PrivilegedInterceptor;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
-import org.trustedanalytics.usermanagement.users.FormatUserRolesValidator;
+import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
 import org.trustedanalytics.usermanagement.users.UserPasswordValidator;
 import org.trustedanalytics.usermanagement.users.rest.AuthGatewayOperations;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
@@ -133,8 +133,8 @@ public class TestConfiguration {
     }
 
     @Bean
-    protected FormatUserRolesValidator formatRolesValidator() {
-        return mock(FormatUserRolesValidator.class);
+    protected UserRoleRequestValidator formatRolesValidator() {
+        return mock(UserRoleRequestValidator.class);
     }
 
     @Bean

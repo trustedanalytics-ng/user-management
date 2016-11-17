@@ -29,7 +29,7 @@ import org.trustedanalytics.usermanagement.invitations.service.EmailInvitationsS
 import org.trustedanalytics.usermanagement.invitations.service.EmailService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
-import org.trustedanalytics.usermanagement.users.FormatUserRolesValidator;
+import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -97,10 +97,6 @@ public class InvitationsConfig {
         return new BlacklistEmailValidator(forbiddenDomains);
     }
 
-    @Bean
-    protected FormatUserRolesValidator formatRolesValidator(){
-        return new FormatUserRolesValidator();
-    }
 
     @Bean
     protected InvitationLinkGenerator intitationLinkGenerator() {

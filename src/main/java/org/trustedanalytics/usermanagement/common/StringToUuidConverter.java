@@ -13,18 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
 package org.trustedanalytics.usermanagement.common;
+
+import com.google.common.base.Preconditions;
+import org.trustedanalytics.usermanagement.common.WrongUuidFormatException;
 
 import java.util.UUID;
 
 public class StringToUuidConverter {
 
-    private UuidFormatValidator uuidFormatValidator = new UuidFormatValidator();
+    private StringToUuidConverter(){}
 
-    public UUID convert(String uuidString) {
-        uuidFormatValidator.validate(uuidString);
-        return UUID.fromString(uuidString);
+    public static UUID convert(String uuidString) {
+        try {
+            Preconditions.checkNotNull(uuidString);
+            return UUID.fromString(uuidString);
+        } catch (NullPointerException e) {
+            throw new WrongUuidFormatException("Guid code cannot be null.", e);
+        } catch (IllegalArgumentException e) {
+            throw new WrongUuidFormatException("Guid code is invalid.", e);
+        }
     }
-
 }

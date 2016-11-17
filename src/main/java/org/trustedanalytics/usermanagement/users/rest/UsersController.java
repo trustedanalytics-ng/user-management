@@ -20,6 +20,7 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.usermanagement.common.StringToUuidConverter;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
-import org.trustedanalytics.usermanagement.users.FormatUserRolesValidator;
+import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
 import org.trustedanalytics.usermanagement.users.model.User;
 import org.trustedanalytics.usermanagement.users.model.UserRequest;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
@@ -52,17 +53,14 @@ public class UsersController {
     private final UsersService priviledgedUsersService;
     private final UserDetailsFinder detailsFinder;
     private final BlacklistEmailValidator emailValidator;
-    private final FormatUserRolesValidator formatRolesValidator;
-    private final StringToUuidConverter stringToUuidConverter = new StringToUuidConverter();
 
     @Autowired
     public UsersController(UsersService usersService, UsersService priviledgedUsersService,
-        UserDetailsFinder detailsFinder, BlacklistEmailValidator emailValidator, FormatUserRolesValidator formatRolesValidator) {
+        UserDetailsFinder detailsFinder, BlacklistEmailValidator emailValidator) {
         this.usersService = usersService;
         this.priviledgedUsersService = priviledgedUsersService;
         this.detailsFinder = detailsFinder;
         this.emailValidator = emailValidator;
-        this.formatRolesValidator = formatRolesValidator;
     }
 
     private UsersService determinePriviledgeLevel(Authentication auth) {
@@ -85,7 +83,7 @@ public class UsersController {
     })
     @RequestMapping(value = ORG_USERS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<User> getOrgUsers(@PathVariable String org, @ApiParam(hidden = true) Authentication auth) {
-        UUID orgUuid = stringToUuidConverter.convert(org);
+        UUID orgUuid = StringToUuidConverter.convert(org);
         return determinePriviledgeLevel(auth).getOrgUsers(orgUuid);
     }
 
@@ -105,10 +103,10 @@ public class UsersController {
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public User createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
                               @ApiParam(hidden = true) Authentication auth) {
-        UUID orgUuid = stringToUuidConverter.convert(org);
-        String currentUser = detailsFinder.findUserName(auth);
+        UUID orgUuid = StringToUuidConverter.convert(org);
+        String userPerformingRequestGuid = detailsFinder.findUserName(auth);
         emailValidator.validate(userRequest.getUsername());
-        return determinePriviledgeLevel(auth).addOrgUser(userRequest, orgUuid, currentUser).orElse(null);
+        return determinePriviledgeLevel(auth).addOrgUser(userRequest, orgUuid, userPerformingRequestGuid ).orElse(null);
     }
 
     @ApiOperation(
@@ -127,9 +125,11 @@ public class UsersController {
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public UserRole updateOrgUserRole(@RequestBody UserRolesRequest userRolesRequest, @PathVariable String org,
                                          @PathVariable String user, @ApiParam(hidden = true) Authentication auth) {
-        formatRolesValidator.validateOrgRoles(userRolesRequest.getRole());
-        UUID userGuid = stringToUuidConverter.convert(user);
-        UUID orgGuid = stringToUuidConverter.convert(org);
+        UserRoleRequestValidator.validate(userRolesRequest);
+        UUID orgGuid = StringToUuidConverter.convert(org);
+        UUID userGuid = StringToUuidConverter.convert(user);
+        UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
         return determinePriviledgeLevel(auth)
                 .updateOrgUserRole(userGuid, orgGuid, userRolesRequest.getRole());
     }
@@ -148,9 +148,16 @@ public class UsersController {
     @RequestMapping(value = ORG_USERS_URL+"/{user}", method = DELETE)
     public void deleteUserFromOrg(@PathVariable String org, @PathVariable String user,
                                   @ApiParam(hidden = true) Authentication auth) {
-        UUID orgUuid = stringToUuidConverter.convert(org);
-        UUID userUuid = stringToUuidConverter.convert(user);
-        determinePriviledgeLevel(auth).deleteUserFromOrg(userUuid, orgUuid);
+        UUID orgGuid = StringToUuidConverter.convert(org);
+        UUID userGuid = StringToUuidConverter.convert(user);
+        UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
+        determinePriviledgeLevel(auth).deleteUserFromOrg(userGuid, orgGuid);
     }
 
+    private void denyOperationsOnYourself(UUID operationPerformer, UUID userEntity){
+        if(operationPerformer.equals(userEntity)){
+            throw new AccessDeniedException("You cannot perform request on yourself.");
+        }
+    }
 }

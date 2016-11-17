@@ -16,7 +16,7 @@
 package org.trustedanalytics.usermanagement.users;
 
 public class WrongUserRolesException extends RuntimeException{
-    public WrongUserRolesException(String message) {
-        super(message);
+    public WrongUserRolesException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

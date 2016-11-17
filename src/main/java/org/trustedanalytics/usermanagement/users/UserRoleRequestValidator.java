@@ -13,19 +13,24 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package org.trustedanalytics.usermanagement.users;
 
-package org.trustedanalytics.usermanagement.common;
+import com.google.common.base.Preconditions;
+import org.trustedanalytics.usermanagement.users.model.UserRolesRequest;
 
-import java.util.UUID;
 
-public class UuidFormatValidator implements UuidValidator {
-    @Override
-    public void validate(String uuidString) {
+public class UserRoleRequestValidator {
+
+    private UserRoleRequestValidator() {}
+
+    public static UserRolesRequest validate(UserRolesRequest rolesRequest) {
         try {
-            UUID.fromString(uuidString);
-        } catch(Exception e) {
-            throw new WrongUuidFormatException("Wrong uuid format exception", e);
+            Preconditions.checkNotNull(rolesRequest.getRole());
+            return rolesRequest;
+        } catch (NullPointerException e) {
+            throw new WrongUserRolesException("You cannot perform request without specified role.", e);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Role that you specyfied is not correct.", e);
         }
     }
-
 }
