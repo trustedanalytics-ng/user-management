@@ -27,20 +27,20 @@ User-management requires following service to function properly:
 
 * **SMTP** - to send invitation emails;
 * **Redis DB** - for storing security codes.
-* **SSO** - a collection of URLs for services like UAA, Cloud Controller, Login server, etc ...
+* **SSO** - a collection of URLs needed for Single Sign On functionality (UAA endpoints, client credentials etc.)
 
 Required libraries
 -----------------
 Following libraries are necessary to successfully build user-management:
 
-* **uaa-lib** - separate library to communicate with uaa.
+* **uaa-lib** - separate library to communicate with UAA.
 
 Security
 --------
 The RESTful endpoints provided by this service are protected by OAuth2. User management is a Resource Server and requires valid Acces Token for communication.
 There are actually two tokens used:
 
-* **user AT** - obtained from HTTP header from request a user comes with. It's used for majority of the communications with Cloud Controller.
+* **user AT** - obtained from HTTP header from request a user comes with. It's used for majority of the communications with UAA.
 * **client AT** - required to create new accounts in UAA. This token is obtained from UAA by means of client grant type.
 
 How to build
@@ -53,19 +53,24 @@ $ mvn verify
 
 How to run locally
 ------------------
-To run the service locally or in Cloud Foundry, the following environment variables need to be defined:
+To run the service locally or in Kubernetes cluster, the following environment variables need to be defined:
 
-* `VCAP_SERVICES_SSO_CREDENTIALS_APIENDPOINT` - a Cloud Foundry API endpoint;
-* `VCAP_SERVICES_SSO_CREDENTIALS_UAAURI` - an UAA service address;
-* `VCAP_SERVICES_SSO_CREDENTIALS_AUTHORIZATIONURI` - an OAuth authorization endpoint;
-* `VCAP_SERVICES_SSO_CREDENTIALS_TOKENKEY` - an UAA endpoint for verifying token signatures;
-* `VCAP_SERVICES_SSO_CREDENTIALS_CLIENTID` - a client ID used for OAuth authorization;
-* `VCAP_SERVICES_SSO_CREDENTIALS_CLIENTSECRET` - a client secret used for OAuth authorization;
-* `VCAP_SERVICES_SMTP_CREDENTIALS_HOSTNAME` - a SMTP host name;
-* `VCAP_SERVICES_SMTP_CREDENTIALS_USERNAME` - a user name for authorization to SMTP server;
-* `VCAP_SERVICES_SMTP_CREDENTIALS_PASSWORD` - a password for authorization to SMTP server;
-* `VCAP_SERVICES_SMTP_CREDENTIALS_PORT` - a SMTP server port;
-* `VCAP_SERVICES_SMTP_CREDENTIALS_PORT_SSL` - a SMTP server SSL port;
+* `SERVER_PORT` - User Management server port;
+* `SSO_TOKENURI` - UAA endpoint for getting tokens;
+* `SSO_AUTHORIZATIONURI` - OAuth authorization endpoint;
+* `SSO_CLIENTID` - client ID used for OAuth authorization;
+* `SSO_CLIENTSECRET` - client secret used for OAuth authorization;
+* `SSO_TOKENKEY` - UAA endpoint for verifying token signatures;
+* `SSO_UAAURI` - UAA service address;
+* `SSO_EMAIL` - email for  OAuth authorization;
+* `SMTP_HOST` - SMTP host name;
+* `SMTP_PORT` - SMTP server port;
+* `SMTP_PROTOCOL` - SMTP protocol;
+* `SMTP_USERNAME` - user name for authorization to SMTP server;
+* `SMTP_PASSWORD` - password for authorization to SMTP server;
+* `SMTP_EMAIL` - email for SMTP server;
+* `CONSOLE_HOST` - Console application host name;
+* `AUTHGATEWAY_HOST` - Auth Gateway application host name;
 
 There are meaningful configuration values provided that allow for local testing. The server can be run by maven spring boot plugin:
 
