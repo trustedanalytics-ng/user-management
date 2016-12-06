@@ -30,7 +30,7 @@ import java.util.UUID;
 public class OrgResourceMock {
 
     private static final Org ORGANIZATION_MOCK =
-            new Org(UUID.fromString("00000000-0000-0000-0000-000000000000"), "default");
+            new Org(UUID.fromString("64656661-756c-746f-7267-000000000000"), "default");
 
     private static final Collection<Org> ORGANIZATIONS = Arrays.asList(ORGANIZATION_MOCK);
 
