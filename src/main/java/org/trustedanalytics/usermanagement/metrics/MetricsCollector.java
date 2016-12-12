@@ -25,9 +25,9 @@ import javax.annotation.PreDestroy;
 
 public class MetricsCollector {
 
-    final private int metricsRefreshDelay;
-    final private Gauge counts;
-    final private UaaOperations uaaPrivilegedClient;
+    private final int metricsRefreshDelay;
+    private final Gauge counts;
+    private final UaaOperations uaaPrivilegedClient;
     private OrgResourceMock orgResourceMock;
 
     private ThreadPoolTaskScheduler scheduler;

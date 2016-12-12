@@ -1,7 +1,7 @@
 server:
   port: ${port:9998}
 security:
-  ignored: /metrics,/rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*,/health
+  ignored: /metrics,/rest/registrations/*,/rest/registrations,/new-account*,/v2/api-docs,/api-docs/default/*,/images/*,/lib/*,/healthz
 
 spring.oauth2:
   client:
@@ -42,11 +42,8 @@ web:
   debug: false
 
 endpoints:
-  health.enabled: true
   prometheus.id: metrics
   metrics.id: springmetrics
-  health:
-    sensitive: false
 
 metrics:
   name: tap_usermanagement_counts

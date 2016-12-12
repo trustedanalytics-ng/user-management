@@ -48,7 +48,7 @@ public class UsersControllerTest {
     @Mock
     private UsersService usersService;
     @Mock
-    UsersService priviledgedUsersService;
+    UsersService privilegedUsersService;
     @Mock
     UserDetailsFinder detailsFinder;
     @Mock
@@ -58,7 +58,7 @@ public class UsersControllerTest {
 
     @Before
     public void setup() {
-        sut = new UsersController(usersService, priviledgedUsersService, detailsFinder, emailValidator);
+        sut = new UsersController(usersService, privilegedUsersService, detailsFinder, emailValidator);
         AccessTokenDetails details = new AccessTokenDetails(UUID.randomUUID());
         when(userAuthentication.getDetails()).thenReturn(details);
         req = new UserRequest();
@@ -74,7 +74,7 @@ public class UsersControllerTest {
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).getOrgUsers(orgId);
-        verify(priviledgedUsersService, times(0)).getOrgUsers(orgId);
+        verify(privilegedUsersService, times(0)).getOrgUsers(orgId);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class UsersControllerTest {
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(0)).getOrgUsers(orgId);
-        verify(priviledgedUsersService, times(1)).getOrgUsers(orgId);
+        verify(privilegedUsersService, times(1)).getOrgUsers(orgId);
     }
 
     @Test
@@ -104,7 +104,7 @@ public class UsersControllerTest {
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).addOrgUser(req, orgId, "admin_test");
-        verify(priviledgedUsersService, times(0)).addOrgUser(req, orgId, "admin_test");
+        verify(privilegedUsersService, times(0)).addOrgUser(req, orgId, "admin_test");
     }
 
     @Test
@@ -119,7 +119,7 @@ public class UsersControllerTest {
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).deleteUserFromOrg(userId, orgId);
-        verify(priviledgedUsersService, times(0)).deleteUserFromOrg(userId, orgId);
+        verify(privilegedUsersService, times(0)).deleteUserFromOrg(userId, orgId);
     }
 
     @Test(expected = AccessDeniedException.class)

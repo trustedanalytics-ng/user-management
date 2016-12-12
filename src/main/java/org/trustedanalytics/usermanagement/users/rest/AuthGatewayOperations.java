@@ -34,7 +34,7 @@ public interface AuthGatewayOperations {
     default UserState createUser(String orgId, String userId, Fallback fallback) {
         try {
             return createUser(orgId, userId);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             fallback.accept(ex);
             throw new IllegalStateException(String.format("unable to add user %s to cdh", userId), ex);
         }
@@ -46,7 +46,7 @@ public interface AuthGatewayOperations {
     default UserState deleteUser(String orgId, String userId, Fallback fallback) {
         try {
             return deleteUser(orgId, userId);
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             fallback.accept(ex);
             throw new IllegalStateException(String.format("unable to delete user %s from cdh", userId), ex);
         }

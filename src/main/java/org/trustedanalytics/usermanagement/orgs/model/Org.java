@@ -23,9 +23,10 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Org {
 
+    private UUID guid;
+
+    private String name;
+
     public Org() {
     }
-
-    private UUID guid;
-    private String name;
 }

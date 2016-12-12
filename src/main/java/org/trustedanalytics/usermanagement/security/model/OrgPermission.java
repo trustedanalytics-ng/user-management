@@ -23,10 +23,12 @@ import org.trustedanalytics.usermanagement.orgs.model.Org;
 @AllArgsConstructor
 public class OrgPermission {
 
+    private Org org;
+
+    private boolean user;
+
+    private boolean admin;
+
     public OrgPermission() {
     }
-
-    private Org org;
-    private boolean user;
-    private boolean admin;
 }
