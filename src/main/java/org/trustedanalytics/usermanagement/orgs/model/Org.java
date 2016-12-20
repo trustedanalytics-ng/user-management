@@ -17,13 +17,11 @@ package org.trustedanalytics.usermanagement.orgs.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 public class Org {
 
-    private UUID guid;
+    private String guid;
 
     private String name;
 

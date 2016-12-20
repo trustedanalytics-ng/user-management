@@ -97,7 +97,7 @@ public class UaaUsersServiceTest {
         adminGroup = new ScimGroup(UUID.randomUUID().toString(), "tap.admin", UUID.randomUUID().toString());
         testUserFromUaa.setGroups(new HashSet<>());
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
-        existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
+        existingOrganization = new Org(UUID.randomUUID().toString(), "the-only-org");
 
         sut = new UaaUsersService(uaaOperations, invitationService, accessInvitationsService, authGatewayOperations);
     }
@@ -107,7 +107,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
-        Collection<User> result = sut.getOrgUsers(existingOrganization.getGuid());
+        Collection<User> result = sut.getOrgUsers(UUID.fromString(existingOrganization.getGuid()));
 
         assertTrue(result.containsAll(testUsers));
     }

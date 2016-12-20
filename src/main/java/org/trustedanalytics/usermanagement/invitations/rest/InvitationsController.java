@@ -105,7 +105,7 @@ public class InvitationsController {
                 }).orElseGet(() -> {
                     String currentUserName = detailsFinder.findUserName(authentication);
                     String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
-                    UUID orgGuid = OrgResourceMock.get().getGuid();
+                    UUID orgGuid = UUID.fromString(OrgResourceMock.get().getGuid());
                     accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
                             ui -> ui.addOrgAccessInvitation(orgGuid, UserRole.USER));
                     return new InvitationErrorDescription(InvitationErrorDescription.State.NEW, invitationLink);

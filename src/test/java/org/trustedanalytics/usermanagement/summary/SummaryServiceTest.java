@@ -50,26 +50,26 @@ public class SummaryServiceTest {
     public void getOrganizationSummaryTest() {
         // given
         Collection<User> users = users();
-        UUID guid = OrgResourceMock.get().getGuid();
+        String guid = OrgResourceMock.get().getGuid();
 
         // when
-        when(usersService.getOrgUsers(guid)).thenReturn(users);
+        when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);
 
         // then
-        assertEquals(summaryService.getOrganizationSummary(guid.toString()).getUsers(), users);
+        assertEquals(summaryService.getOrganizationSummary(guid).getUsers(), users);
     }
 
     @Test
     public void getPlatformSummaryTest() {
         // given
         Collection<User> users = users();
-        UUID guid = OrgResourceMock.get().getGuid();
+        String guid = OrgResourceMock.get().getGuid();
 
         // when
-        when(usersService.getOrgUsers(guid)).thenReturn(users);
+        when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);
 
         // then
-        PlatformSummary summary = new PlatformSummary(ImmutableList.of(summaryService.getOrganizationSummary(guid.toString())));
+        PlatformSummary summary = new PlatformSummary(ImmutableList.of(summaryService.getOrganizationSummary(guid)));
         assertEquals(summaryService.getPlatformSummary(), summary);
     }
 

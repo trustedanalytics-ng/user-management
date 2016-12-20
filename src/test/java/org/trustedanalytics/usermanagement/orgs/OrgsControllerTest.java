@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
 public class OrgsControllerTest {
 
     private OrgsController sut;
-    private Org existingOrganization = new Org(UUID.randomUUID(), "the-only-org");
+    private Org existingOrganization = new Org(UUID.randomUUID().toString(), "the-only-org");
 
     @Mock
     private OrgResourceMock organizationResource;
