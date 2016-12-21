@@ -43,6 +43,7 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.trustedanalytics.usermanagement.common.TestUtils.DEFAULT_ORG;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -68,10 +69,9 @@ public class InvitationsControllerTest {
     @Mock
     private AccessInvitationsService accessInvitationsService;
 
-
     @Before
     public void setUp() throws Exception {
-        sut = new InvitationsController(invitationsService, detailsFinder, accessInvitationsService, emailValidator);
+        sut = new InvitationsController(invitationsService, detailsFinder, accessInvitationsService, emailValidator, DEFAULT_ORG);
     }
 
     @Test

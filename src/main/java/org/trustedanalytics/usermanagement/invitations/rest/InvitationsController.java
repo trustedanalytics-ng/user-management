@@ -66,15 +66,19 @@ public class InvitationsController {
 
     private final BlacklistEmailValidator emailValidator;
 
+    private final OrgResourceMock orgResourceMock;
+
     @Autowired
     public InvitationsController(InvitationsService invitationsService,
                                  UserDetailsFinder detailsFinder,
                                  AccessInvitationsService accessInvitationsService,
-                                 BlacklistEmailValidator emailValidator){
+                                 BlacklistEmailValidator emailValidator,
+                                 OrgResourceMock orgResourceMock){
         this.invitationsService = invitationsService;
         this.detailsFinder = detailsFinder;
         this.accessInvitationsService = accessInvitationsService;
         this.emailValidator = emailValidator;
+        this.orgResourceMock = orgResourceMock;
     }
 
     @ApiOperation(
@@ -105,7 +109,7 @@ public class InvitationsController {
                 }).orElseGet(() -> {
                     String currentUserName = detailsFinder.findUserName(authentication);
                     String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
-                    UUID orgGuid = UUID.fromString(OrgResourceMock.get().getGuid());
+                    UUID orgGuid = UUID.fromString(orgResourceMock.get().getGuid());
                     accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
                             ui -> ui.addOrgAccessInvitation(orgGuid, UserRole.USER));
                     return new InvitationErrorDescription(InvitationErrorDescription.State.NEW, invitationLink);

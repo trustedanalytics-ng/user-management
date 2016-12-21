@@ -57,6 +57,9 @@ public class EmailInvitationsService implements InvitationsService {
     @Autowired
     private AuthGatewayOperations authGatewayOperations;
 
+    @Autowired
+    private OrgResourceMock orgResourceMock;
+
     public EmailInvitationsService(SpringTemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
     }
@@ -127,7 +130,7 @@ public class EmailInvitationsService implements InvitationsService {
         return accessInvitationsService.getAccessInvitations(username)
                 .map(invitations -> {
                     final ScimUser user = uaaPrivilegedClient.createUser(username, password);
-                    final String orgId = OrgResourceMock.get().getGuid().toString();
+                    final String orgId = orgResourceMock.get().getGuid().toString();
                     authGatewayOperations.createUser(orgId, user.getId(), ex ->
                         // rollback adding user to UAA
                         uaaPrivilegedClient.deleteUser(UUID.fromString(user.getId())));

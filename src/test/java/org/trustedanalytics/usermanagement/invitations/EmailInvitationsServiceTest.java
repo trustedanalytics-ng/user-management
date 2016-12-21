@@ -39,7 +39,9 @@ import org.trustedanalytics.usermanagement.invitations.service.EmailInvitationsS
 import org.trustedanalytics.usermanagement.invitations.service.Fallback;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.MessageService;
+import org.trustedanalytics.usermanagement.orgs.config.OrgConfig;
 import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.storage.KeyValueStore;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.model.UserState;
@@ -55,7 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {EmailInvitationsServiceTest.EmailInvitationsServiceTestConfiguration.class})
+@ContextConfiguration(classes = {EmailInvitationsServiceTest.EmailInvitationsServiceTestConfiguration.class, OrgConfig.class})
 @ActiveProfiles("unit-test")
 public class EmailInvitationsServiceTest {
 
@@ -73,12 +75,19 @@ public class EmailInvitationsServiceTest {
     @Autowired
     private AuthGatewayOperations authGatewayOperations;
 
+    @Autowired
+    private OrgResourceMock orgResourceMock;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
     @Configuration
     @Profile("unit-test")
     public static class EmailInvitationsServiceTestConfiguration {
+
+        @Autowired
+        private OrgResourceMock orgResourceMock;
+
         @Bean
         public AccessInvitationsService accessInvitationsService() {
             final KeyValueStore<AccessInvitations> keyValueStore = mock(KeyValueStore.class);
@@ -107,7 +116,7 @@ public class EmailInvitationsServiceTest {
         @Bean
         public AuthGatewayOperations authGatewayOperations() {
             final AuthGatewayOperations authGatewayOperations = mock(AuthGatewayOperations.class);
-            final String orgId = OrgResourceMock.get().getGuid().toString();
+            final String orgId = orgResourceMock.get().getGuid();
             when(authGatewayOperations.createUser(orgId, USER_ID, mock(Fallback.class))).thenReturn(new UserState(SAMPLE_EMAIL_ADDRESS, USER_ID, true));
             return authGatewayOperations;
         }
@@ -147,7 +156,7 @@ public class EmailInvitationsServiceTest {
         final InOrder inOrder = inOrder(uaaPrivilegedClient, authGatewayOperations);
 
         inOrder.verify(uaaPrivilegedClient).createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
-        inOrder.verify(authGatewayOperations).createUser(eq(OrgResourceMock.get().getGuid().toString()), eq(userGuid.get().toString()), any());
+        inOrder.verify(authGatewayOperations).createUser(eq(orgResourceMock.get().getGuid()), eq(userGuid.get().toString()), any());
     }
 
     @Test

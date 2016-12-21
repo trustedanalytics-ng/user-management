@@ -33,6 +33,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.trustedanalytics.usermanagement.common.TestUtils.DEFAULT_ORG;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SummaryServiceTest {
@@ -40,17 +41,19 @@ public class SummaryServiceTest {
     private UsersService usersService;
     private SummaryService summaryService;
 
+    private OrgResourceMock orgResourceMock = DEFAULT_ORG;
+
     @Before
     public void setUp() {
         usersService = mock(UsersService.class);
-        this.summaryService = new SummaryService(usersService);
+        this.summaryService = new SummaryService(usersService, orgResourceMock);
     }
 
     @Test
     public void getOrganizationSummaryTest() {
         // given
         Collection<User> users = users();
-        String guid = OrgResourceMock.get().getGuid();
+        String guid = orgResourceMock.get().getGuid();
 
         // when
         when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);
@@ -63,7 +66,7 @@ public class SummaryServiceTest {
     public void getPlatformSummaryTest() {
         // given
         Collection<User> users = users();
-        String guid = OrgResourceMock.get().getGuid();
+        String guid = orgResourceMock.get().getGuid();
 
         // when
         when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);

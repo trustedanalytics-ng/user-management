@@ -17,11 +17,14 @@ package org.trustedanalytics.usermanagement.common;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
+import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 
 import java.nio.charset.Charset;
 import java.util.UUID;
 
 public class TestUtils {
+
+    public static final OrgResourceMock DEFAULT_ORG = new OrgResourceMock("64656661-756c-746f-7267-000000000000", "default");
 
     public static HttpClientErrorException createDummyHttpClientException(UUID userId) {
         String body =

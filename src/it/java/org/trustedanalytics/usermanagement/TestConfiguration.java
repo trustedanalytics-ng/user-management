@@ -152,8 +152,4 @@ public class TestConfiguration {
         return mock(InvitationLinkGenerator.class);
     }
 
-    @Bean
-    protected OrgResourceMock organizationResourceMock() {
-        return new OrgResourceMock();
-    }
 }

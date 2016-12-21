@@ -28,7 +28,7 @@ public class MetricsCollector {
     private final int metricsRefreshDelay;
     private final Gauge counts;
     private final UaaOperations uaaPrivilegedClient;
-    private OrgResourceMock orgResourceMock;
+    private final OrgResourceMock orgResourceMock;
 
     private ThreadPoolTaskScheduler scheduler;
 

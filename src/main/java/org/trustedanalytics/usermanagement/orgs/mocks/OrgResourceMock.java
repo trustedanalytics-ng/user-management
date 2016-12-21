@@ -18,28 +18,29 @@ package org.trustedanalytics.usermanagement.orgs.mocks;
 
 import com.google.common.collect.ImmutableList;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 
-import java.util.Arrays;
 import java.util.Collection;
 
+import static java.util.Collections.singleton;
+
 // TODO: remove this class after integration with TAP NG
-@Configuration
 public class OrgResourceMock {
 
-    private static final Org ORGANIZATION_MOCK =
-            new Org("64656661-756c-746f-7267-000000000000", "default");
+    private final Org org;
 
-    private static final Collection<Org> ORGANIZATIONS = Arrays.asList(ORGANIZATION_MOCK);
+    private final Collection<Org> orgList;
 
-    @Bean
-    public Collection<Org> getOrganizations() {
-        return ImmutableList.copyOf(ORGANIZATIONS);
+    public OrgResourceMock(String id, String name) {
+        org = new Org(id, name);
+        orgList = singleton(org);
     }
 
-    public static Org get() {
-        return ORGANIZATION_MOCK;
+    public Collection<Org> getOrganizations() {
+        return ImmutableList.copyOf(orgList);
+    }
+
+    public Org get() {
+        return org;
     }
 }

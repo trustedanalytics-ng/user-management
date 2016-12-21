@@ -69,12 +69,15 @@ public class PermissionsIT {
     @Autowired
     private UserDetailsFinder detailsFinder;
 
+    @Autowired
+    private OrgResourceMock orgResourceMock;
+
     private Org expectedOrg;
 
     @Before
     public void setUp() {
         when(tokenRetriever.getAuthToken(any(Authentication.class))).thenReturn(TOKEN);
-        expectedOrg = OrgResourceMock.get();
+        expectedOrg = orgResourceMock.get();
     }
 
     @Test

@@ -33,15 +33,17 @@ import java.util.stream.Collectors;
 public class SummaryService {
 
     private final UsersService usersService;
+    private final OrgResourceMock orgResourceMock;
 
     @Autowired
-    public SummaryService(UsersService usersService) {
+    public SummaryService(UsersService usersService, OrgResourceMock orgResourceMock) {
         this.usersService = usersService;
+        this.orgResourceMock = orgResourceMock;
     }
 
     public OrganizationSummary getOrganizationSummary(String orgGuid) {
         // we assume that we have only one organization
-        final Org org = OrgResourceMock.get();
+        final Org org = orgResourceMock.get();
         final Collection<User> users = usersService.getOrgUsers(UUID.fromString(orgGuid));
 
         final OrganizationSummary summary = new OrganizationSummary();
@@ -53,7 +55,7 @@ public class SummaryService {
 
     public PlatformSummary getPlatformSummary() {
         // we assume that we have only one organization
-        final Collection<OrganizationSummary> summaries = ImmutableList.of(OrgResourceMock.get()).stream()
+        final Collection<OrganizationSummary> summaries = orgResourceMock.getOrganizations().stream()
                 .map(org -> getOrganizationSummary(org.getGuid().toString()))
                 .collect(Collectors.toList());
         return new PlatformSummary(summaries);
