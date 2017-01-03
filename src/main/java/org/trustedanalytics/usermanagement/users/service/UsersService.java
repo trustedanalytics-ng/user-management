@@ -21,16 +21,15 @@ import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.UUID;
 
 public interface UsersService {
     Collection<User> getOrgUsers(String orgGuid);
 
     Optional<User> addOrgUser(UserRequest userRequest, String org, String currentUser);
 
-    void deleteUserFromOrg(UUID userGuid, String orgId);
+    void deleteUserFromOrg(String userGuid, String orgId);
 
-    UserRole updateOrgUserRole(UUID userGuid, String orgGuid, UserRole role);
+    UserRole updateOrgUserRole(String userGuid, String orgGuid, UserRole role);
 
-    void updateUserRolesInOrgs(String username, UUID uuid);
+    void updateUserRolesInOrgs(String username, String uuid);
 }

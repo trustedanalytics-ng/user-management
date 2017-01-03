@@ -83,6 +83,7 @@ public class UaaUsersServiceTest {
     private AuthGatewayOperations authGatewayOperations;
 
     private final String orgId = "defaultorg";
+    private final String userId = "test-user-id";
 
     class UserComparator implements Comparator<User> {
         @Override
@@ -93,9 +94,9 @@ public class UaaUsersServiceTest {
 
     @Before
     public void setup() {
-        testUser = new User(UUID.randomUUID(), "testuser", UserRole.USER);
+        testUser = new User(userId, "testuser", UserRole.USER);
         testUsers = Arrays.asList(testUser);
-        testUserFromUaa = new ScimUser(testUser.getGuid().toString(), testUser.getUsername(), "", "");
+        testUserFromUaa = new ScimUser(testUser.getGuid(), testUser.getUsername(), "", "");
         adminGroup = new ScimGroup(UUID.randomUUID().toString(), "tap.admin", UUID.randomUUID().toString());
         testUserFromUaa.setGroups(new HashSet<>());
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
@@ -139,7 +140,7 @@ public class UaaUsersServiceTest {
         Optional<User> resultUser = sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgId, "admin_test");
 
         verify(accessInvitationsService, never()).createOrUpdateInvitation(any(), any());
-        verify(authGatewayOperations, times(1)).createUser(orgId, resultUser.get().getGuid().toString());
+        verify(authGatewayOperations, times(1)).createUser(orgId, resultUser.get().getGuid());
         assertTrue(resultUser.isPresent());
         assertEquals(testUser, resultUser.get());
     }
@@ -151,7 +152,7 @@ public class UaaUsersServiceTest {
 
         sut.deleteUserFromOrg(testUser.getGuid(), orgId);
 
-        verify(authGatewayOperations, times(1)).deleteUser(orgId, testUser.getGuid().toString());
+        verify(authGatewayOperations, times(1)).deleteUser(orgId, testUser.getGuid());
         verify(uaaOperations).deleteUser(testUser.getGuid());
     }
 
@@ -161,7 +162,7 @@ public class UaaUsersServiceTest {
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
         try {
-            sut.deleteUserFromOrg(UUID.randomUUID(), orgId);
+            sut.deleteUserFromOrg("another-user-id", orgId);
         } catch (EntityNotFoundException e) {
             assertEquals(e.getMessage(), "The user does not exist");
             verify(uaaOperations, never()).deleteUser(any());
@@ -183,7 +184,7 @@ public class UaaUsersServiceTest {
     @Test
     public void updateOrgUserRole_adminRole_userPresentInAdminGroup_doNothing() {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
-        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
+        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid())));
 
         sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.ADMIN);
 
@@ -205,7 +206,7 @@ public class UaaUsersServiceTest {
     @Test
     public void updateOrgUserRole_userRole_userPresentInAdminsGroup_removeFromAdminsGroup() {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
-        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
+        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid())));
 
         sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.USER);
 

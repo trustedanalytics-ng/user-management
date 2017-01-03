@@ -31,24 +31,22 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
-import org.trustedanalytics.usermanagement.invitations.service.InvitationLinkGenerator;
-import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCodeService;
+import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.EmailInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.Fallback;
+import org.trustedanalytics.usermanagement.invitations.service.InvitationLinkGenerator;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.MessageService;
 import org.trustedanalytics.usermanagement.orgs.config.OrgConfig;
 import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
-import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.storage.KeyValueStore;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.model.UserState;
 import org.trustedanalytics.usermanagement.users.rest.AuthGatewayOperations;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -65,6 +63,7 @@ public class EmailInvitationsServiceTest {
     private static final String SAMPLE_EMAIL_ADDRESS = "sampleuser@example.com";
     private static final String OTHER_SAMPLE_EMAIL_ADDRESS = "otheruser@example.com";
     private static final String PASSWORD = "password";
+    private static final String TEST_USER_ID = "test-user-id";
 
     @Autowired
     private InvitationsService sut;
@@ -107,7 +106,7 @@ public class EmailInvitationsServiceTest {
         public UaaOperations uaaPrivilegedClient() {
             final UaaOperations uaaOperations = mock(UaaOperations.class);
             when(uaaOperations.findUserIdByName(SAMPLE_EMAIL_ADDRESS)).thenReturn(Optional.<UserIdNamePair>empty());
-            when(uaaOperations.findUserIdByName(OTHER_SAMPLE_EMAIL_ADDRESS)).thenReturn(Optional.of(UserIdNamePair.of(UUID.randomUUID(), OTHER_SAMPLE_EMAIL_ADDRESS)));
+            when(uaaOperations.findUserIdByName(OTHER_SAMPLE_EMAIL_ADDRESS)).thenReturn(Optional.of(UserIdNamePair.of(TEST_USER_ID, OTHER_SAMPLE_EMAIL_ADDRESS)));
             when(uaaOperations.createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD)).thenReturn(new ScimUser(USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
             when(uaaOperations.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, PASSWORD)).thenReturn(new ScimUser(USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
             return uaaOperations;
@@ -150,13 +149,13 @@ public class EmailInvitationsServiceTest {
     @Test
     public void createUser_userDoesNotExist_sendRequestToUaaAndAuthGateway() {
         // when
-        final Optional<UUID> userGuid = sut.createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
+        final Optional<String> userGuid = sut.createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
 
         // then
         final InOrder inOrder = inOrder(uaaPrivilegedClient, authGatewayOperations);
 
         inOrder.verify(uaaPrivilegedClient).createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
-        inOrder.verify(authGatewayOperations).createUser(eq(orgResourceMock.get().getGuid()), eq(userGuid.get().toString()), any());
+        inOrder.verify(authGatewayOperations).createUser(eq(orgResourceMock.get().getGuid()), eq(userGuid.get()), any());
     }
 
     @Test

@@ -26,13 +26,13 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
-import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.model.Invitation;
 import org.trustedanalytics.usermanagement.invitations.model.Registration;
 import org.trustedanalytics.usermanagement.invitations.rest.RegistrationsController;
 import org.trustedanalytics.usermanagement.invitations.securitycode.InvalidSecurityCodeException;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCode;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCodeService;
+import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.users.EmptyPasswordException;
@@ -42,8 +42,9 @@ import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Optional;
-import java.util.UUID;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -171,7 +172,7 @@ public class RegistrationsControllerTest {
         doReturn(sc).when(securityCodeService).verify(Matchers.anyString());
         Registration registration = new Registration();
         String userPassword = "123456";
-        UUID userGuid = UUID.randomUUID();
+        String userGuid = "test-user-id";
         when(invitationsService.createUser(USER_EMAIL, userPassword)).thenReturn(Optional.of(userGuid));
 
         AccessInvitations accessInvitations = new AccessInvitations();
@@ -184,7 +185,7 @@ public class RegistrationsControllerTest {
 
         Mockito.verify(securityCodeService).redeem(sc);
         Assert.assertTrue(registeredUser.getPassword().equals(userPassword));
-        Assert.assertTrue(registeredUser.getUserGuid().equals(userGuid.toString()));
+        assertThat(registeredUser.getUserGuid(), equalTo(userGuid));
     }
 
     @Test

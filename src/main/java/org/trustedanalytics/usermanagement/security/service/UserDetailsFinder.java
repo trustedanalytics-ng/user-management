@@ -18,13 +18,11 @@ package org.trustedanalytics.usermanagement.security.service;
 import org.springframework.security.core.Authentication;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
-import java.util.UUID;
-
 public interface UserDetailsFinder {
 
     UserRole findUserRole(Authentication authentication);
 
-    UUID findUserId(Authentication authentication);
+    String findUserId(Authentication authentication);
 
     String findUserName(Authentication authentication);
 

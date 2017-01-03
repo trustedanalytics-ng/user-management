@@ -29,11 +29,11 @@ import org.trustedanalytics.usermanagement.orgs.model.OrgNameRequest;
 import org.trustedanalytics.usermanagement.orgs.rest.OrgsController;
 import org.trustedanalytics.usermanagement.security.AccessTokenDetails;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
+
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -63,7 +63,7 @@ public class OrgsControllerTest {
     @Test
     public void getOrgs_returnOneOrganization() {
         Collection<Org> expectedOrgs = Arrays.asList(existingOrganization);
-        AccessTokenDetails details = new AccessTokenDetails(UUID.randomUUID());
+        AccessTokenDetails details = new AccessTokenDetails("test-user-id");
         when(userAuthentication.getDetails()).thenReturn(details);
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
 

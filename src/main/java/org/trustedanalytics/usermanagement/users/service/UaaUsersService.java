@@ -32,7 +32,6 @@ import org.trustedanalytics.usermanagement.users.rest.AuthGatewayOperations;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class UaaUsersService implements UsersService {
@@ -57,7 +56,7 @@ public class UaaUsersService implements UsersService {
     public Collection<User> getOrgUsers(String orgGuid) {
         Collection<ScimUser> scimUsers = uaaClient.getUsers().getResources();
         return scimUsers.stream()
-                .map(scimUser -> new User(UUID.fromString(scimUser.getId()), scimUser.getUserName(),
+                .map(scimUser -> new User(scimUser.getId(), scimUser.getUserName(),
                         extractOrgRole(scimUser)))
                 .collect(Collectors.toList());
     }
@@ -77,8 +76,8 @@ public class UaaUsersService implements UsersService {
             inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, role);
         }
         return idNamePair.map(pair -> {
-            UUID userGuid = pair.getGuid();
-            authGatewayOperations.createUser(orgGuid, userGuid.toString());
+            String userGuid = pair.getGuid();
+            authGatewayOperations.createUser(orgGuid, userGuid);
             return new User(userGuid, userRequest.getUsername(), userRequest.getRole());
         });
     }
@@ -92,16 +91,16 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public void deleteUserFromOrg(UUID userGuid, String orgGuid) {
+    public void deleteUserFromOrg(String userGuid, String orgGuid) {
         if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
             throw new EntityNotFoundException("The user does not exist", null);
         }
         uaaClient.deleteUser(userGuid);
-        authGatewayOperations.deleteUser(orgGuid, userGuid.toString());
+        authGatewayOperations.deleteUser(orgGuid, userGuid);
     }
 
     @Override
-    public UserRole updateOrgUserRole(UUID userGuid, String orgGuid, UserRole role) {
+    public UserRole updateOrgUserRole(String userGuid, String orgGuid, UserRole role) {
         ScimGroup adminGroup = getAdminGroup();
         if (isGroupMember(adminGroup, userGuid) && role.equals(UserRole.USER)) {
             uaaClient.removeUserFromGroup(adminGroup, userGuid);
@@ -112,7 +111,7 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public void updateUserRolesInOrgs(String username, UUID uuid){
+    public void updateUserRolesInOrgs(String username, String uuid){
         accessInvitationsService
             .getAccessInvitations(username)
             .map(AccessInvitations::getOrgAccessInvitations)
@@ -128,7 +127,7 @@ public class UaaUsersService implements UsersService {
                 " not found in UAA database"));
     }
 
-    private boolean isGroupMember(ScimGroup group, UUID userGuid) {
-        return group.getMembers().stream().anyMatch(m -> m.getMemberId().equals(userGuid.toString()));
+    private boolean isGroupMember(ScimGroup group, String userGuid) {
+        return group.getMembers().stream().anyMatch(m -> m.getMemberId().equals(userGuid));
     }
 }

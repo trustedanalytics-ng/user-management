@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.provider.token.DefaultUserAuthenticat
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.springframework.security.oauth2.provider.token.AccessTokenConverter.SCOPE;
@@ -47,7 +46,7 @@ public class ScopeAuthoritiesTokenConverter extends DefaultUserAuthenticationCon
             UsernamePasswordAuthenticationToken token =
                     new UsernamePasswordAuthenticationToken(map.get(USERNAME), "N/A", getAuthorities(map));
             if (map.containsKey(USER_ID)) {
-                AccessTokenDetails details = new AccessTokenDetails(UUID.fromString((String)map.get(USER_ID)));
+                AccessTokenDetails details = new AccessTokenDetails((String)map.get(USER_ID));
                 token.setDetails(details);
             }
             return token;

@@ -26,7 +26,7 @@ import java.util.UUID;
 @EqualsAndHashCode
 public class User {
 
-    private UUID guid;
+    private String guid;
     private String username;
     private UserRole role;
 

@@ -36,8 +36,6 @@ import org.trustedanalytics.usermanagement.security.model.OrgPermission;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
@@ -50,6 +48,8 @@ import static org.mockito.Mockito.when;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @ActiveProfiles("in-memory")
 public class PermissionsIT {
+
+    private static final String TEST_USER_ID = "test-user-id";
 
     @Value("http://localhost:${local.server.port}")
     private String BASE_URL;
@@ -83,7 +83,7 @@ public class PermissionsIT {
     @Test
     public void permissionsEndpoint_globalRoleUser_returnOneUserPermissionForMockedOrg() {
         when(detailsFinder.findUserRole(any())).thenReturn(UserRole.USER);
-        when(detailsFinder.findUserId(any())).thenReturn(UUID.randomUUID());
+        when(detailsFinder.findUserId(any())).thenReturn(TEST_USER_ID);
         TestRestTemplate testRestTemplate = new TestRestTemplate();
 
         OrgPermission[] valueReturned =
@@ -96,7 +96,7 @@ public class PermissionsIT {
     @Test
     public void permissionsEndpoint_globalRoleAdmin_returnOneAdminPermissionForMockedOrg() {
         when(detailsFinder.findUserRole(any())).thenReturn(UserRole.ADMIN);
-        when(detailsFinder.findUserId(any())).thenReturn(UUID.randomUUID());
+        when(detailsFinder.findUserId(any())).thenReturn(TEST_USER_ID);
         TestRestTemplate testRestTemplate = new TestRestTemplate();
 
         OrgPermission[] valueReturned =

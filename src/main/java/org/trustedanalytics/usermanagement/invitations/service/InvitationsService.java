@@ -17,12 +17,11 @@ package org.trustedanalytics.usermanagement.invitations.service;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public interface InvitationsService {
     String sendInviteEmail(String email, String currentUser);
     String resendInviteEmail(String email, String currentUser);
-    Optional<UUID> createUser(String username, String password);
+    Optional<String> createUser(String username, String password);
     boolean userExists(String username);
     Set<String> getPendingInvitationsEmails();
     void deleteInvitation(String email);

@@ -20,6 +20,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
 import org.trustedanalytics.usermanagement.security.AccessTokenDetails;
@@ -31,9 +32,7 @@ import org.trustedanalytics.usermanagement.users.model.UserRolesRequest;
 import org.trustedanalytics.usermanagement.users.rest.UsersController;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
-import org.springframework.security.access.AccessDeniedException;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
@@ -57,11 +56,12 @@ public class UsersControllerTest {
     private BlacklistEmailValidator emailValidator;
 
     private final String orgId = "defaultorg";
+    private final String userId = "test-user";
 
     @Before
     public void setup() {
         sut = new UsersController(usersService, privilegedUsersService, detailsFinder, emailValidator);
-        AccessTokenDetails details = new AccessTokenDetails(UUID.randomUUID());
+        AccessTokenDetails details = new AccessTokenDetails(userId);
         when(userAuthentication.getDetails()).thenReturn(details);
         req = new UserRequest();
     }
@@ -92,7 +92,6 @@ public class UsersControllerTest {
 
     @Test
     public void createOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
-        UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
@@ -108,12 +107,12 @@ public class UsersControllerTest {
 
     @Test
     public void deleteOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
-        UUID userId = UUID.randomUUID();
+        String anotherUserId = "another-user";
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
-        when(detailsFinder.findUserId(auth)).thenReturn(UUID.randomUUID());
+        when(detailsFinder.findUserId(auth)).thenReturn(anotherUserId);
 
-        sut.deleteUserFromOrg(orgId, userId.toString(), auth);
+        sut.deleteUserFromOrg(orgId, userId, auth);
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).deleteUserFromOrg(userId, orgId);
@@ -122,24 +121,22 @@ public class UsersControllerTest {
 
     @Test(expected = AccessDeniedException.class)
     public void deleteYourself_throwsAccessDenied() {
-        UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
 
-        sut.deleteUserFromOrg(orgId, userId.toString(), auth);
+        sut.deleteUserFromOrg(orgId, userId, auth);
     }
 
     @Test(expected = AccessDeniedException.class)
     public void updateYourself_throwsAccessDenied() {
         UserRolesRequest request = new UserRolesRequest();
         request.setRole(UserRole.USER);
-        UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
 
-        sut.updateOrgUserRole(request, orgId, userId.toString(), auth);
+        sut.updateOrgUserRole(request, orgId, userId, auth);
     }
 
 }

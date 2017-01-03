@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -87,10 +86,10 @@ public class AuthorizationController {
      */
     private Collection<OrgPermission> resolvePermissions(Collection<String> orgs,
         Authentication authentication) {
-        final UUID user = detailsFinder.findUserId(authentication);
+        final String user = detailsFinder.findUserId(authentication);
         final UserRole role = detailsFinder.findUserRole(authentication);
 
-        LOGGER.info("Resolving permissions for user: {}", user.toString());
+        LOGGER.info("Resolving permissions for user: {}", user);
         return UserRole.ADMIN.equals(role) ?
             resolveAdminPermissions(orgs) :
             resolveUserPermissions(user, orgs);
@@ -120,7 +119,7 @@ public class AuthorizationController {
      * @param orgs organizations
      * @return permissions
      */
-    private Collection<OrgPermission> resolveUserPermissions(UUID user, Collection<String> orgs) {
+    private Collection<OrgPermission> resolveUserPermissions(String user, Collection<String> orgs) {
 
         // TODO: user permissions in organization will be retreived from external resource
         Collection<Org> allOrganizations = orgResourceMock.getOrganizations();

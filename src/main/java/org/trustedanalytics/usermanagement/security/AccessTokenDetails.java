@@ -24,7 +24,7 @@ import java.util.UUID;
 public class AccessTokenDetails {
 
     @Getter
-    private UUID userGuid;
+    private String userGuid;
 
     @Override
     public String toString() {

@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.trustedanalytics.usermanagement.common.StringToUuidConverter;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
 import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
@@ -33,7 +32,6 @@ import org.trustedanalytics.usermanagement.users.model.UserRolesRequest;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Collection;
-import java.util.UUID;
 
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -122,11 +120,10 @@ public class UsersController {
     public UserRole updateOrgUserRole(@RequestBody UserRolesRequest userRolesRequest, @PathVariable String org,
                                          @PathVariable String user, @ApiParam(hidden = true) Authentication auth) {
         UserRoleRequestValidator.validate(userRolesRequest);
-        UUID userGuid = StringToUuidConverter.convert(user);
-        UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
-        denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
+        String userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        denyOperationsOnYourself(userPerformingRequestGuid, user);
         return determinePriviledgeLevel(auth)
-                .updateOrgUserRole(userGuid, org, userRolesRequest.getRole());
+                .updateOrgUserRole(user, org, userRolesRequest.getRole());
     }
 
     @ApiOperation(
@@ -142,13 +139,12 @@ public class UsersController {
     @RequestMapping(value = ORG_USERS_URL+"/{user}", method = DELETE)
     public void deleteUserFromOrg(@PathVariable String org, @PathVariable String user,
                                   @ApiParam(hidden = true) Authentication auth) {
-        UUID userGuid = StringToUuidConverter.convert(user);
-        UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
-        denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
-        determinePriviledgeLevel(auth).deleteUserFromOrg(userGuid, org);
+        String userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        denyOperationsOnYourself(userPerformingRequestGuid, user);
+        determinePriviledgeLevel(auth).deleteUserFromOrg(user, org);
     }
 
-    private void denyOperationsOnYourself(UUID operationPerformer, UUID userEntity){
+    private void denyOperationsOnYourself(String operationPerformer, String userEntity){
         if(operationPerformer.equals(userEntity)){
             throw new AccessDeniedException("You cannot perform request on yourself.");
         }

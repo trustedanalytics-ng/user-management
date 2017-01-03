@@ -24,7 +24,6 @@ import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.Collection;
 import java.util.Optional;
-import java.util.UUID;
 
 public final class UserDetailsFinderImpl implements UserDetailsFinder {
 
@@ -38,7 +37,7 @@ public final class UserDetailsFinderImpl implements UserDetailsFinder {
     }
 
     @Override
-    public UUID findUserId(Authentication authentication) {
+    public String findUserId(Authentication authentication) {
         verifyAuthenticationToken(authentication);
         OAuth2Authentication oauth2 = (OAuth2Authentication) authentication;
         AccessTokenDetails details = (AccessTokenDetails) oauth2.getUserAuthentication().getDetails();

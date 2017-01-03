@@ -40,8 +40,8 @@ import static org.mockito.Mockito.when;
 public class AuthorizationControllerTest {
 
     private AuthorizationController sut;
-    private UUID userGuid = UUID.randomUUID();
-    private UUID adminGuid = UUID.randomUUID();
+    private String userGuid = "test-user";
+    private String adminGuid = "test-admin";
     private Org existingOrganization = new Org("defaultorg", "the-only-org");
 
     @Mock

@@ -31,7 +31,6 @@ import org.trustedanalytics.usermanagement.users.rest.AuthGatewayOperations;
 
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
 public class EmailInvitationsService implements InvitationsService {
 
@@ -100,7 +99,7 @@ public class EmailInvitationsService implements InvitationsService {
     }
 
     @Override
-    public Optional<UUID> createUser(String username, String password) {
+    public Optional<String> createUser(String username, String password) {
         validateUsername(username);
         return createAndRetrieveUser(username, password);
     }
@@ -126,15 +125,15 @@ public class EmailInvitationsService implements InvitationsService {
         accessInvitationsService.redeemAccessInvitations(email);
     }
 
-    private Optional<UUID> createAndRetrieveUser(String username, String password) {
+    private Optional<String> createAndRetrieveUser(String username, String password) {
         return accessInvitationsService.getAccessInvitations(username)
                 .map(invitations -> {
                     final ScimUser user = uaaPrivilegedClient.createUser(username, password);
-                    final String orgId = orgResourceMock.get().getGuid().toString();
+                    final String orgId = orgResourceMock.get().getGuid();
                     authGatewayOperations.createUser(orgId, user.getId(), ex ->
                         // rollback adding user to UAA
-                        uaaPrivilegedClient.deleteUser(UUID.fromString(user.getId())));
-                    return UUID.fromString(user.getId());
+                        uaaPrivilegedClient.deleteUser(user.getId()));
+                    return user.getId();
                 });
     }
 
