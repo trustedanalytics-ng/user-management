@@ -170,8 +170,6 @@ public class InvitationsIT {
     public void newRegistration_validData_statusOkAndUserCreated() {
         final String username = "validcode@test";
         final String password = "asdasd";
-        final String organization = "testorg";
-        final UUID orgGuid = UUID.randomUUID();
         final UUID userGuid = UUID.randomUUID();
         final String userGuidString = userGuid.toString();
         final String code = codeService.generateCode(username).getCode();

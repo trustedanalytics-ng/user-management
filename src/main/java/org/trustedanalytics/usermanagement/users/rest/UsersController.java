@@ -15,10 +15,6 @@
  */
 package org.trustedanalytics.usermanagement.users.rest;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -38,6 +34,11 @@ import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Collection;
 import java.util.UUID;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -77,14 +78,12 @@ public class UsersController {
                     "valid access token")
     @ApiResponses(value = {
         @ApiResponse(code = 200, message = "OK", response = User.class, responseContainer = "List"),
-        @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
-            "ID 'org' doesn't exist"),
+        @ApiResponse(code = 400, message = "Request was malformed. eg. organization with ID 'org' doesn't exist"),
         @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(value = ORG_USERS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<User> getOrgUsers(@PathVariable String org, @ApiParam(hidden = true) Authentication auth) {
-        UUID orgUuid = StringToUuidConverter.convert(org);
-        return determinePriviledgeLevel(auth).getOrgUsers(orgUuid);
+        return determinePriviledgeLevel(auth).getOrgUsers(org);
     }
 
     @ApiOperation(
@@ -94,8 +93,7 @@ public class UsersController {
     )
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = User.class),
-            @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
-                    "ID 'org' doesn't exist"),
+            @ApiResponse(code = 400, message = "Request was malformed. e.g. organization with ID 'org' doesn't exist"),
             @ApiResponse(code = 409, message = "Email is not valid or it belongs to forbidden domains."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
@@ -103,10 +101,9 @@ public class UsersController {
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public User createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
                               @ApiParam(hidden = true) Authentication auth) {
-        UUID orgUuid = StringToUuidConverter.convert(org);
         String userPerformingRequestGuid = detailsFinder.findUserName(auth);
         emailValidator.validate(userRequest.getUsername());
-        return determinePriviledgeLevel(auth).addOrgUser(userRequest, orgUuid, userPerformingRequestGuid ).orElse(null);
+        return determinePriviledgeLevel(auth).addOrgUser(userRequest, org, userPerformingRequestGuid ).orElse(null);
     }
 
     @ApiOperation(
@@ -115,8 +112,7 @@ public class UsersController {
                     "with OrgManager role, based on valid access token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK", response = UserRole.class, responseContainer = "List"),
-            @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
-                    "ID 'org' doesn't exist"),
+            @ApiResponse(code = 400, message = "Request was malformed. e.g. organization with ID 'org' doesn't exist"),
             @ApiResponse(code = 404, message = "User not found in organization."),
             @ApiResponse(code = 409, message = "Roles should be specified."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
@@ -126,12 +122,11 @@ public class UsersController {
     public UserRole updateOrgUserRole(@RequestBody UserRolesRequest userRolesRequest, @PathVariable String org,
                                          @PathVariable String user, @ApiParam(hidden = true) Authentication auth) {
         UserRoleRequestValidator.validate(userRolesRequest);
-        UUID orgGuid = StringToUuidConverter.convert(org);
         UUID userGuid = StringToUuidConverter.convert(user);
         UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
         denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
         return determinePriviledgeLevel(auth)
-                .updateOrgUserRole(userGuid, orgGuid, userRolesRequest.getRole());
+                .updateOrgUserRole(userGuid, org, userRolesRequest.getRole());
     }
 
     @ApiOperation(
@@ -140,19 +135,17 @@ public class UsersController {
                     "with OrgManager role, based on valid access token")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "OK"),
-            @ApiResponse(code = 400, message = "Request was malformed. eg. 'org' is not a valid UUID or organization with" +
-                    "ID 'org' doesn't exist"),
+            @ApiResponse(code = 400, message = "Request was malformed. e.g. organization with ID 'org' doesn't exist"),
             @ApiResponse(code = 404, message = "User 'user' not found in organization."),
             @ApiResponse(code = 500, message = "Internal server error, e.g. error connecting to CloudController")
     })
     @RequestMapping(value = ORG_USERS_URL+"/{user}", method = DELETE)
     public void deleteUserFromOrg(@PathVariable String org, @PathVariable String user,
                                   @ApiParam(hidden = true) Authentication auth) {
-        UUID orgGuid = StringToUuidConverter.convert(org);
         UUID userGuid = StringToUuidConverter.convert(user);
         UUID userPerformingRequestGuid = detailsFinder.findUserId(auth);
         denyOperationsOnYourself(userPerformingRequestGuid, userGuid);
-        determinePriviledgeLevel(auth).deleteUserFromOrg(userGuid, orgGuid);
+        determinePriviledgeLevel(auth).deleteUserFromOrg(userGuid, org);
     }
 
     private void denyOperationsOnYourself(UUID operationPerformer, UUID userEntity){

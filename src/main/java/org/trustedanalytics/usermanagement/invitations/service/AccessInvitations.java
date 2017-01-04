@@ -15,23 +15,23 @@
  */
 package org.trustedanalytics.usermanagement.invitations.service;
 
-import lombok.Getter;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+
+import lombok.Getter;
 
 public class AccessInvitations {
 
     @Getter
-    private Map<UUID, UserRole> orgAccessInvitations;
+    private Map<String, UserRole> orgAccessInvitations;
 
     public AccessInvitations() {
         this.orgAccessInvitations = new HashMap<>();
     }
 
-    public void addOrgAccessInvitation(UUID uuid, UserRole role) {
-        this.orgAccessInvitations.put(uuid, role);
+    public void addOrgAccessInvitation(String orgId, UserRole role) {
+        this.orgAccessInvitations.put(orgId, role);
     }
 }

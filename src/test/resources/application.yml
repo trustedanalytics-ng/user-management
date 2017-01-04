@@ -14,5 +14,5 @@ logging:
     org.springframework.security: DEBUG
 
 core.org:
-  id: 64656661-756c-746f-7267-000000000000
+  id: defaultorg
   name: default

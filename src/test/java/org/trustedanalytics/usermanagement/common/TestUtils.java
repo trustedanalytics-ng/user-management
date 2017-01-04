@@ -24,7 +24,7 @@ import java.util.UUID;
 
 public class TestUtils {
 
-    public static final OrgResourceMock DEFAULT_ORG = new OrgResourceMock("64656661-756c-746f-7267-000000000000", "default");
+    public static final OrgResourceMock DEFAULT_ORG = new OrgResourceMock("defaultorg", "default");
 
     public static HttpClientErrorException createDummyHttpClientException(UUID userId) {
         String body =

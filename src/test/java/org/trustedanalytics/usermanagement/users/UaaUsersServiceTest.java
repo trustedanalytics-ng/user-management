@@ -82,6 +82,8 @@ public class UaaUsersServiceTest {
     @Mock
     private AuthGatewayOperations authGatewayOperations;
 
+    private final String orgId = "defaultorg";
+
     class UserComparator implements Comparator<User> {
         @Override
         public int compare(User o1, User o2) {
@@ -97,7 +99,7 @@ public class UaaUsersServiceTest {
         adminGroup = new ScimGroup(UUID.randomUUID().toString(), "tap.admin", UUID.randomUUID().toString());
         testUserFromUaa.setGroups(new HashSet<>());
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
-        existingOrganization = new Org(UUID.randomUUID().toString(), "the-only-org");
+        existingOrganization = new Org("defaultorg", "the-only-org");
 
         sut = new UaaUsersService(uaaOperations, invitationService, accessInvitationsService, authGatewayOperations);
     }
@@ -107,7 +109,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
-        Collection<User> result = sut.getOrgUsers(UUID.fromString(existingOrganization.getGuid()));
+        Collection<User> result = sut.getOrgUsers(existingOrganization.getGuid());
 
         assertTrue(result.containsAll(testUsers));
     }
@@ -120,7 +122,7 @@ public class UaaUsersServiceTest {
         when(accessInvitationsService.createOrUpdateInvitation(eq(userToAdd),
                 any())).thenReturn(AccessInvitationsService.CreateOrUpdateState.CREATED);
 
-        Optional<User> resultUser = sut.addOrgUser(new UserRequest(userToAdd), UUID.randomUUID(), currentUser);
+        Optional<User> resultUser = sut.addOrgUser(new UserRequest(userToAdd), orgId, currentUser);
 
         verify(accessInvitationsService).createOrUpdateInvitation(eq(userToAdd), any());
         verify(invitationService).sendInviteEmail(userToAdd, currentUser);
@@ -134,11 +136,10 @@ public class UaaUsersServiceTest {
         UserIdNamePair idNamePair = UserIdNamePair.of(testUser.getGuid(), testUser.getUsername());
         when(uaaOperations.findUserIdByName(testUser.getUsername())).thenReturn(Optional.ofNullable(idNamePair));
 
-        final UUID orgGuid = UUID.randomUUID();
-        Optional<User> resultUser = sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgGuid, "admin_test");
+        Optional<User> resultUser = sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgId, "admin_test");
 
         verify(accessInvitationsService, never()).createOrUpdateInvitation(any(), any());
-        verify(authGatewayOperations, times(1)).createUser(orgGuid.toString(), resultUser.get().getGuid().toString());
+        verify(authGatewayOperations, times(1)).createUser(orgId, resultUser.get().getGuid().toString());
         assertTrue(resultUser.isPresent());
         assertEquals(testUser, resultUser.get());
     }
@@ -148,10 +149,9 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
-        final UUID orgGuid = UUID.randomUUID();
-        sut.deleteUserFromOrg(testUser.getGuid(), orgGuid);
+        sut.deleteUserFromOrg(testUser.getGuid(), orgId);
 
-        verify(authGatewayOperations, times(1)).deleteUser(orgGuid.toString(), testUser.getGuid().toString());
+        verify(authGatewayOperations, times(1)).deleteUser(orgId, testUser.getGuid().toString());
         verify(uaaOperations).deleteUser(testUser.getGuid());
     }
 
@@ -161,7 +161,7 @@ public class UaaUsersServiceTest {
         when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
 
         try {
-            sut.deleteUserFromOrg(UUID.randomUUID(), UUID.randomUUID());
+            sut.deleteUserFromOrg(UUID.randomUUID(), orgId);
         } catch (EntityNotFoundException e) {
             assertEquals(e.getMessage(), "The user does not exist");
             verify(uaaOperations, never()).deleteUser(any());
@@ -174,7 +174,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
         adminGroup.setMembers(new ArrayList<>());
 
-        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
+        sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.ADMIN);
 
         verify(uaaOperations).addUserToGroup(adminGroup, testUser.getGuid());
         verify(uaaOperations, never()).removeUserFromGroup(any(), any());
@@ -185,7 +185,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
         adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
 
-        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
+        sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.ADMIN);
 
         verify(uaaOperations, never()).addUserToGroup(any(), any());
         verify(uaaOperations, never()).removeUserFromGroup(any(), any());
@@ -196,7 +196,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
         adminGroup.setMembers(new ArrayList<>());
 
-        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.USER);
+        sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.USER);
 
         verify(uaaOperations, never()).addUserToGroup(any(), any());
         verify(uaaOperations, never()).removeUserFromGroup(any(), any());
@@ -207,7 +207,7 @@ public class UaaUsersServiceTest {
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
         adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid().toString())));
 
-        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.USER);
+        sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.USER);
 
         verify(uaaOperations, never()).addUserToGroup(any(), any());
         verify(uaaOperations).removeUserFromGroup(adminGroup, testUser.getGuid());
@@ -218,6 +218,6 @@ public class UaaUsersServiceTest {
         Optional<ScimGroup> emptyGroup = Optional.empty();
         when(uaaOperations.getGroup(any())).thenReturn(emptyGroup);
 
-        sut.updateOrgUserRole(testUser.getGuid(), UUID.randomUUID(), UserRole.ADMIN);
+        sut.updateOrgUserRole(testUser.getGuid(), orgId, UserRole.ADMIN);
     }
 }

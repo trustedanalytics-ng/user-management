@@ -41,8 +41,9 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class OrgsControllerTest {
 
+    private final String orgId = "defaultorg";
     private OrgsController sut;
-    private Org existingOrganization = new Org(UUID.randomUUID().toString(), "the-only-org");
+    private Org existingOrganization = new Org(orgId, "the-only-org");
 
     @Mock
     private OrgResourceMock organizationResource;
@@ -73,19 +74,16 @@ public class OrgsControllerTest {
 
     @Test(expected = NotImplementedException.class)
     public void renameOrg() {
-        UUID orgId = UUID.randomUUID();
         String testName = "test-name";
         OrgNameRequest request = new OrgNameRequest();
         request.setName(testName);
 
-        sut.renameOrg(request, orgId.toString());
+        sut.renameOrg(request, orgId);
     }
 
     @Test(expected = NotImplementedException.class)
     public void deleteOrg() {
-        UUID orgId = UUID.randomUUID();
-
-        sut.deleteOrg(orgId.toString());
+        sut.deleteOrg(orgId);
     }
 
     @Test(expected = NotImplementedException.class)

@@ -15,18 +15,15 @@
  */
 package org.trustedanalytics.usermanagement.summary.service;
 
-import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.summary.model.OrganizationSummary;
 import org.trustedanalytics.usermanagement.summary.model.PlatformSummary;
-import org.trustedanalytics.usermanagement.users.model.User;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Collection;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,21 +39,21 @@ public class SummaryService {
     }
 
     public OrganizationSummary getOrganizationSummary(String orgGuid) {
+        final OrganizationSummary summary = new OrganizationSummary();
+
         // we assume that we have only one organization
         final Org org = orgResourceMock.get();
-        final Collection<User> users = usersService.getOrgUsers(UUID.fromString(orgGuid));
-
-        final OrganizationSummary summary = new OrganizationSummary();
         summary.setName(org.getName());
-        summary.setGuid(org.getGuid().toString());
-        summary.setUsers(users);
+        summary.setGuid(org.getGuid());
+        summary.setUsers(usersService.getOrgUsers(orgGuid));
+
         return summary;
     }
 
     public PlatformSummary getPlatformSummary() {
         // we assume that we have only one organization
         final Collection<OrganizationSummary> summaries = orgResourceMock.getOrganizations().stream()
-                .map(org -> getOrganizationSummary(org.getGuid().toString()))
+                .map(org -> getOrganizationSummary(org.getGuid()))
                 .collect(Collectors.toList());
         return new PlatformSummary(summaries);
     }

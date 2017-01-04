@@ -56,6 +56,8 @@ public class UsersControllerTest {
     @Mock
     private BlacklistEmailValidator emailValidator;
 
+    private final String orgId = "defaultorg";
+
     @Before
     public void setup() {
         sut = new UsersController(usersService, privilegedUsersService, detailsFinder, emailValidator);
@@ -66,11 +68,10 @@ public class UsersControllerTest {
 
     @Test
     public void getOrgUsers_ByNonManager_PriviledgedServiceNotUsed() {
-        UUID orgId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
 
-        sut.getOrgUsers(orgId.toString(), auth);
+        sut.getOrgUsers(orgId, auth);
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).getOrgUsers(orgId);
@@ -79,11 +80,10 @@ public class UsersControllerTest {
 
     @Test
     public void getOrgUsers_ByManager_PriviledgedServiceUsed() {
-        UUID orgId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
 
-        sut.getOrgUsers(orgId.toString(), auth);
+        sut.getOrgUsers(orgId, auth);
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(0)).getOrgUsers(orgId);
@@ -92,7 +92,6 @@ public class UsersControllerTest {
 
     @Test
     public void createOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
-        UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
@@ -100,7 +99,7 @@ public class UsersControllerTest {
         when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
         when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<User>empty());
 
-        sut.createOrgUser(req, orgId.toString(), auth);
+        sut.createOrgUser(req, orgId, auth);
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).addOrgUser(req, orgId, "admin_test");
@@ -109,13 +108,12 @@ public class UsersControllerTest {
 
     @Test
     public void deleteOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
-        UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(UUID.randomUUID());
 
-        sut.deleteUserFromOrg(orgId.toString(), userId.toString(), auth);
+        sut.deleteUserFromOrg(orgId, userId.toString(), auth);
 
         verify(detailsFinder).findUserRole(auth);
         verify(usersService, times(1)).deleteUserFromOrg(userId, orgId);
@@ -124,26 +122,24 @@ public class UsersControllerTest {
 
     @Test(expected = AccessDeniedException.class)
     public void deleteYourself_throwsAccessDenied() {
-        UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
 
-        sut.deleteUserFromOrg(orgId.toString(), userId.toString(), auth);
+        sut.deleteUserFromOrg(orgId, userId.toString(), auth);
     }
 
     @Test(expected = AccessDeniedException.class)
     public void updateYourself_throwsAccessDenied() {
         UserRolesRequest request = new UserRolesRequest();
         request.setRole(UserRole.USER);
-        UUID orgId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
 
-        sut.updateOrgUserRole(request, orgId.toString(), userId.toString(), auth);
+        sut.updateOrgUserRole(request, orgId, userId.toString(), auth);
     }
 
 }

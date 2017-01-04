@@ -93,7 +93,7 @@ public class EmailInvitationsServiceTest {
             final KeyValueStore<AccessInvitations> keyValueStore = mock(KeyValueStore.class);
             final AccessInvitationsService service =  new AccessInvitationsService(keyValueStore);
             AccessInvitations accessInvitations = new AccessInvitations();
-            accessInvitations.addOrgAccessInvitation(UUID.randomUUID(), UserRole.USER);
+            accessInvitations.addOrgAccessInvitation(orgResourceMock.get().getGuid(), UserRole.USER);
             when(keyValueStore.get(SAMPLE_EMAIL_ADDRESS)).thenReturn(accessInvitations);
             return service;
         }

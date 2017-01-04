@@ -91,7 +91,7 @@ public class OrgsController {
             @ApiResponse(code = 501, message = "Creating organization is not supported in this application version")
     })
     @RequestMapping(value = GENERAL_ORGS_URL, method = POST, consumes = APPLICATION_JSON_VALUE)
-    public UUID createOrg(@RequestBody OrgNameRequest request) {
+    public String createOrg(@RequestBody OrgNameRequest request) {
         throw new NotImplementedException();
     }
 }

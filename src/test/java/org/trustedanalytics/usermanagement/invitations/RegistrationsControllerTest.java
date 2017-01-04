@@ -54,7 +54,7 @@ public class RegistrationsControllerTest {
 
     private static final String USER_EMAIL = "email@example.com";
     private static final String SECURITY_CODE = "code";
-    private static final UUID CORE_GUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
+    private static final String CORE_GUID = "defaultorg";
 
     private RegistrationsController sut;
 

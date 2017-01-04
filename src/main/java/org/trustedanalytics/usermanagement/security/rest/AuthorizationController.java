@@ -16,9 +16,7 @@
 package org.trustedanalytics.usermanagement.security.rest;
 
 import com.google.common.base.Strings;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +35,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -67,10 +69,10 @@ public class AuthorizationController {
     public Collection<OrgPermission> getPermissions(@RequestParam(required = false) String orgs,
         Authentication authentication) {
 
-        final List<UUID> organizations = new ArrayList<>();
+        final List<String> organizations = new ArrayList<>();
         if (!Strings.isNullOrEmpty(orgs)) {
             organizations.addAll(
-                Arrays.stream(orgs.split(",")).map(UUID::fromString).collect(toList()));
+                Arrays.stream(orgs.split(",")).collect(toList()));
         }
 
         return resolvePermissions(organizations, authentication);
@@ -79,11 +81,11 @@ public class AuthorizationController {
     /**
      * Returns permissions for user within one organization
      *
-     * @param orgs           UUIDs
+     * @param orgs           collections of organizations
      * @param authentication authentication
      * @return permissions
      */
-    private Collection<OrgPermission> resolvePermissions(Collection<UUID> orgs,
+    private Collection<OrgPermission> resolvePermissions(Collection<String> orgs,
         Authentication authentication) {
         final UUID user = detailsFinder.findUserId(authentication);
         final UserRole role = detailsFinder.findUserRole(authentication);
@@ -101,7 +103,7 @@ public class AuthorizationController {
      * @param orgs organizations
      * @return permissions
      */
-    private Collection<OrgPermission> resolveAdminPermissions(Collection<UUID> orgs) {
+    private Collection<OrgPermission> resolveAdminPermissions(Collection<String> orgs) {
 
         // TODO: this collection will be retreived from external resource
         Collection<Org> allOrganizations = orgResourceMock.getOrganizations();
@@ -118,7 +120,7 @@ public class AuthorizationController {
      * @param orgs organizations
      * @return permissions
      */
-    private Collection<OrgPermission> resolveUserPermissions(UUID user, Collection<UUID> orgs) {
+    private Collection<OrgPermission> resolveUserPermissions(UUID user, Collection<String> orgs) {
 
         // TODO: user permissions in organization will be retreived from external resource
         Collection<Org> allOrganizations = orgResourceMock.getOrganizations();

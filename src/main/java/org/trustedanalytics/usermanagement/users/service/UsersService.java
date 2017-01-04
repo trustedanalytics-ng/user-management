@@ -24,13 +24,13 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UsersService {
-    Collection<User> getOrgUsers(UUID orgGuid);
+    Collection<User> getOrgUsers(String orgGuid);
 
-    Optional<User> addOrgUser(UserRequest userRequest, UUID org, String currentUser);
+    Optional<User> addOrgUser(UserRequest userRequest, String org, String currentUser);
 
-    void deleteUserFromOrg(UUID userGuid, UUID orgId);
+    void deleteUserFromOrg(UUID userGuid, String orgId);
 
-    UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role);
+    UserRole updateOrgUserRole(UUID userGuid, String orgGuid, UserRole role);
 
     void updateUserRolesInOrgs(String username, UUID uuid);
 }

@@ -16,10 +16,6 @@
 package org.trustedanalytics.usermanagement.invitations.rest;
 
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,8 +30,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.trustedanalytics.usermanagement.invitations.InvitationNotSentException;
 import org.trustedanalytics.usermanagement.invitations.UserExistsException;
-import org.trustedanalytics.usermanagement.invitations.model.InvitationErrorDescription;
 import org.trustedanalytics.usermanagement.invitations.model.Invitation;
+import org.trustedanalytics.usermanagement.invitations.model.InvitationErrorDescription;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
@@ -44,7 +40,11 @@ import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.Set;
-import java.util.UUID;
+
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 @RestController
 @ControllerAdvice
@@ -109,9 +109,8 @@ public class InvitationsController {
                 }).orElseGet(() -> {
                     String currentUserName = detailsFinder.findUserName(authentication);
                     String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
-                    UUID orgGuid = UUID.fromString(orgResourceMock.get().getGuid());
                     accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
-                            ui -> ui.addOrgAccessInvitation(orgGuid, UserRole.USER));
+                            ui -> ui.addOrgAccessInvitation(orgResourceMock.get().getGuid(), UserRole.USER));
                     return new InvitationErrorDescription(InvitationErrorDescription.State.NEW, invitationLink);
                 });
     }

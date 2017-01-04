@@ -16,6 +16,7 @@
 package org.trustedanalytics.usermanagement.summary;
 
 import com.google.common.collect.ImmutableList;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +29,6 @@ import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Collection;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -56,7 +56,7 @@ public class SummaryServiceTest {
         String guid = orgResourceMock.get().getGuid();
 
         // when
-        when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);
+        when(usersService.getOrgUsers(guid)).thenReturn(users);
 
         // then
         assertEquals(summaryService.getOrganizationSummary(guid).getUsers(), users);
@@ -69,7 +69,7 @@ public class SummaryServiceTest {
         String guid = orgResourceMock.get().getGuid();
 
         // when
-        when(usersService.getOrgUsers(UUID.fromString(guid))).thenReturn(users);
+        when(usersService.getOrgUsers(guid)).thenReturn(users);
 
         // then
         PlatformSummary summary = new PlatformSummary(ImmutableList.of(summaryService.getOrganizationSummary(guid)));

@@ -54,7 +54,7 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public Collection<User> getOrgUsers(UUID orgGuid) {
+    public Collection<User> getOrgUsers(String orgGuid) {
         Collection<ScimUser> scimUsers = uaaClient.getUsers().getResources();
         return scimUsers.stream()
                 .map(scimUser -> new User(UUID.fromString(scimUser.getId()), scimUser.getUserName(),
@@ -70,7 +70,7 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public Optional<User> addOrgUser(UserRequest userRequest, UUID orgGuid, String currentUser) {
+    public Optional<User> addOrgUser(UserRequest userRequest, String orgGuid, String currentUser) {
         Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
         if(!idNamePair.isPresent()) {
             UserRole role = Optional.ofNullable(userRequest.getRole()).orElse(UserRole.USER);
@@ -78,12 +78,12 @@ public class UaaUsersService implements UsersService {
         }
         return idNamePair.map(pair -> {
             UUID userGuid = pair.getGuid();
-            authGatewayOperations.createUser(orgGuid.toString(), userGuid.toString());
+            authGatewayOperations.createUser(orgGuid, userGuid.toString());
             return new User(userGuid, userRequest.getUsername(), userRequest.getRole());
         });
     }
 
-    private void inviteUserToOrg(String username, String currentUser, UUID orgGuid, UserRole role) {
+    private void inviteUserToOrg(String username, String currentUser, String orgGuid, UserRole role) {
         AccessInvitationsService.CreateOrUpdateState state =
                 accessInvitationsService.createOrUpdateInvitation(username, ui -> ui.addOrgAccessInvitation(orgGuid, role));
         if (state == AccessInvitationsService.CreateOrUpdateState.CREATED) {
@@ -92,16 +92,16 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public void deleteUserFromOrg(UUID userGuid, UUID orgGuid) {
+    public void deleteUserFromOrg(UUID userGuid, String orgGuid) {
         if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
             throw new EntityNotFoundException("The user does not exist", null);
         }
         uaaClient.deleteUser(userGuid);
-        authGatewayOperations.deleteUser(orgGuid.toString(), userGuid.toString());
+        authGatewayOperations.deleteUser(orgGuid, userGuid.toString());
     }
 
     @Override
-    public UserRole updateOrgUserRole(UUID userGuid, UUID orgGuid, UserRole role) {
+    public UserRole updateOrgUserRole(UUID userGuid, String orgGuid, UserRole role) {
         ScimGroup adminGroup = getAdminGroup();
         if (isGroupMember(adminGroup, userGuid) && role.equals(UserRole.USER)) {
             uaaClient.removeUserFromGroup(adminGroup, userGuid);

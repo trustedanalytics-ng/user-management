@@ -42,7 +42,7 @@ public class AuthorizationControllerTest {
     private AuthorizationController sut;
     private UUID userGuid = UUID.randomUUID();
     private UUID adminGuid = UUID.randomUUID();
-    private Org existingOrganization = new Org(UUID.randomUUID().toString(), "the-only-org");
+    private Org existingOrganization = new Org("defaultorg", "the-only-org");
 
     @Mock
     private UserDetailsFinder detailsFinder;
