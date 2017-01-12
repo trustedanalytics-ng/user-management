@@ -51,6 +51,7 @@ public class InvitationsControllerTest {
 
     private static final String ADMIN_EMAIL = "admin@example.com";
     private static final String USER_EMAIL = "email@example.com";
+    private static final String USER_EMAIL_UPPER_CASE = "EMAIL@EXAMPLEE.COM";
     private List<String> forbiddenDomains = new ArrayList<>();
 
     private InvitationsController sut;
@@ -86,6 +87,16 @@ public class InvitationsControllerTest {
 
         verify(invitationsService).sendInviteEmail(eq(USER_EMAIL), eq(ADMIN_EMAIL));
         verify(accessInvitationsService).createOrUpdateInvitation(eq(USER_EMAIL), any());
+    }
+
+    @Test
+    public void testAddInvitation_userEmailUpperCase_accepted() {
+        Invitation invitation = Invitation.of(USER_EMAIL_UPPER_CASE);
+
+        when(invitationsService.userExists(anyString())).thenReturn(false);
+        when(accessInvitationsService.getAccessInvitations(anyString())).thenReturn(Optional.empty());
+
+        sut.addInvitation(invitation, null);
     }
 
     @Test(expected = UserExistsException.class)

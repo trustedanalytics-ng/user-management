@@ -16,13 +16,13 @@
 package org.trustedanalytics.usermanagement.users.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
 public class UserRequest {
 
-    @JsonProperty("username")
     private String username;
 
     @JsonProperty("role")
@@ -32,11 +32,16 @@ public class UserRequest {
     }
 
     public UserRequest(String username) {
-        this.username = username;
+        this.username = username.toLowerCase();
     }
 
     public UserRequest(String username, UserRole role) {
-        this(username);
+        this(username.toLowerCase());
         this.role = role;
+    }
+
+    @JsonSetter
+    public void setUsername(String username) {
+        this.username = username.toLowerCase();
     }
 }

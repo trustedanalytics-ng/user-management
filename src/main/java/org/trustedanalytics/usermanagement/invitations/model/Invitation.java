@@ -15,6 +15,7 @@
  */
 package org.trustedanalytics.usermanagement.invitations.model;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,9 +28,15 @@ public class Invitation {
     private Invitation() {
     }
 
+    @JsonSetter
+    public void setEmail(String email) {
+        this.email = email.toLowerCase();
+    }
+
     public static Invitation of(String email) {
+        String emailLowerCase = email.toLowerCase();
         Invitation im = new Invitation();
-        im.setEmail(email);
+        im.setEmail(emailLowerCase);
         return im;
     }
 }

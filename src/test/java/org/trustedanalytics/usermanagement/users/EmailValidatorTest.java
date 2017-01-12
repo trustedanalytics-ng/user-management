@@ -29,7 +29,9 @@ import java.util.List;
 
 public class EmailValidatorTest {
 
-    private static final String VALID_EMAIL_GOOD_DOMAIN = "foo@exampleee.com";
+    private static final String VALID_EMAIL_GOOD_DOMAIN = "foo@examplee.com";
+    private static final String INVALID_EMAIL_CAPITAL_LETTERS = "FOO@EXAMPLEE.COM";
+    private static final String VALID_EMAIL_PLUS = "foo+fop2@examplee.com";
     private static final String VALID_EMAIL_BLOCKED_DOMAIN = "foo@example.com";
     private static final String INVALID_EMAIL = ".foo@bar@.";
     private BlacklistEmailValidator emailValidator;
@@ -51,6 +53,16 @@ public class EmailValidatorTest {
     @Test
     public void validateEmailAddress_goodDomain(){
         emailValidator.validate(VALID_EMAIL_GOOD_DOMAIN);
+    }
+
+    @Test
+    public void validateEmailAddress_plus(){
+        emailValidator.validate(VALID_EMAIL_PLUS);
+    }
+
+    @Test(expected = WrongEmailAddressException.class)
+    public void validateEmailAddress_capitalLetters(){
+        emailValidator.validate(INVALID_EMAIL_CAPITAL_LETTERS);
     }
 
     @Test(expected = WrongEmailAddressException.class)
