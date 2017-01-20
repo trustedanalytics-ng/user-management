@@ -27,6 +27,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
+import org.trustedanalytics.usermanagement.invitations.UserExistsException;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
@@ -123,26 +124,22 @@ public class UaaUsersServiceTest {
         when(accessInvitationsService.createOrUpdateInvitation(eq(userToAdd),
                 any())).thenReturn(AccessInvitationsService.CreateOrUpdateState.CREATED);
 
-        Optional<User> resultUser = sut.addOrgUser(new UserRequest(userToAdd), orgId, currentUser);
+        sut.addOrgUser(new UserRequest(userToAdd), orgId, currentUser);
 
         verify(accessInvitationsService).createOrUpdateInvitation(eq(userToAdd), any());
         verify(invitationService).sendInviteEmail(userToAdd, currentUser);
         verify(uaaOperations, never()).createUser(any(), any());
         verify(authGatewayOperations, never()).createUser(any(), any());
-        assertFalse(resultUser.isPresent());
     }
 
-    @Test
-    public void addOrgUser_userExists_doNotInviteUser_returnUser() {
+    @Test(expected = UserExistsException.class)
+    public void addOrgUser_userExists_doNotInviteUser_throwUserExistsException() {
         UserIdNamePair idNamePair = UserIdNamePair.of(testUser.getGuid(), testUser.getUsername());
         when(uaaOperations.findUserIdByName(testUser.getUsername())).thenReturn(Optional.ofNullable(idNamePair));
 
-        Optional<User> resultUser = sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgId, "admin_test");
+        sut.addOrgUser(new UserRequest(testUser.getUsername(), UserRole.USER), orgId, "admin_test");
 
         verify(accessInvitationsService, never()).createOrUpdateInvitation(any(), any());
-        verify(authGatewayOperations, times(1)).createUser(orgId, resultUser.get().getGuid());
-        assertTrue(resultUser.isPresent());
-        assertEquals(testUser, resultUser.get());
     }
 
     @Test

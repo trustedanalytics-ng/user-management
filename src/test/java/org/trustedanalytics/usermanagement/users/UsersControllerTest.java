@@ -96,7 +96,6 @@ public class UsersControllerTest {
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
         when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
-        when(usersService.addOrgUser(any(), any(), any())).thenReturn(Optional.<User>empty());
 
         sut.createOrgUser(req, orgId, auth);
 

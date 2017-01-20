@@ -20,6 +20,7 @@ import org.cloudfoundry.identity.uaa.scim.ScimUser;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.uaa.UserIdNamePair;
 import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
+import org.trustedanalytics.usermanagement.invitations.UserExistsException;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
@@ -69,17 +70,13 @@ public class UaaUsersService implements UsersService {
     }
 
     @Override
-    public Optional<User> addOrgUser(UserRequest userRequest, String orgGuid, String currentUser) {
+    public void addOrgUser(UserRequest userRequest, String orgGuid, String currentUser) {
         Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
-        if(!idNamePair.isPresent()) {
-            UserRole role = Optional.ofNullable(userRequest.getRole()).orElse(UserRole.USER);
-            inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, role);
+        if(idNamePair.isPresent()) {
+            throw new UserExistsException("User already exists!");
         }
-        return idNamePair.map(pair -> {
-            String userGuid = pair.getGuid();
-            authGatewayOperations.createUser(orgGuid, userGuid);
-            return new User(userGuid, userRequest.getUsername(), userRequest.getRole());
-        });
+        UserRole role = Optional.ofNullable(userRequest.getRole()).orElse(UserRole.USER);
+        inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, role);
     }
 
     private void inviteUserToOrg(String username, String currentUser, String orgGuid, UserRole role) {

@@ -25,7 +25,7 @@ import java.util.Optional;
 public interface UsersService {
     Collection<User> getOrgUsers(String orgGuid);
 
-    Optional<User> addOrgUser(UserRequest userRequest, String org, String currentUser);
+    void addOrgUser(UserRequest userRequest, String org, String currentUser);
 
     void deleteUserFromOrg(String userGuid, String orgId);
 

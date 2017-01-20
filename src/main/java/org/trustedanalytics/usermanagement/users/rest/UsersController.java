@@ -97,11 +97,11 @@ public class UsersController {
     })
     @RequestMapping(value = ORG_USERS_URL, method = POST,
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
-    public User createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
+    public void createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
                               @ApiParam(hidden = true) Authentication auth) {
         String userPerformingRequestGuid = detailsFinder.findUserName(auth);
         emailValidator.validate(userRequest.getUsername());
-        return determinePriviledgeLevel(auth).addOrgUser(userRequest, org, userPerformingRequestGuid ).orElse(null);
+        determinePriviledgeLevel(auth).addOrgUser(userRequest, org, userPerformingRequestGuid );
     }
 
     @ApiOperation(
