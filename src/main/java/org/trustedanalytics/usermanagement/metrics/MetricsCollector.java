@@ -16,14 +16,21 @@
 package org.trustedanalytics.usermanagement.metrics;
 
 import io.prometheus.client.Gauge;
+import org.cloudfoundry.identity.uaa.rest.SearchResults;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.trustedanalytics.uaa.UaaOperations;
 import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Collection;
+import java.util.Optional;
 
 public class MetricsCollector {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MetricsCollector.class);
 
     private final int metricsRefreshDelay;
     private final Gauge counts;
@@ -54,7 +61,28 @@ public class MetricsCollector {
     }
 
     public void collect() {
-        counts.labels("users").set(uaaPrivilegedClient.getUsers().getResources().size());
-        counts.labels("organizations").set(orgResourceMock.getOrganizations().size());
+        collectUsers();
+        collectOrganizations();
+    }
+
+    private void collectUsers() {
+        Optional<Integer> usersCount = Optional.ofNullable(uaaPrivilegedClient.getUsers())
+                .map(SearchResults::getResources)
+                .map(Collection::size);
+        if (usersCount.isPresent()) {
+            counts.labels("users").set(usersCount.get());
+        } else {
+            LOGGER.warn("Unable to set users metric: null response when getting users from UAA");
+        }
+    }
+
+    private void collectOrganizations() {
+        Optional<Integer> organizationsCount = Optional.ofNullable(orgResourceMock.getOrganizations())
+                .map(Collection::size);
+        if(organizationsCount.isPresent()) {
+            counts.labels("organizations").set(organizationsCount.get());
+        } else {
+            LOGGER.warn("Unable to set organizations metric: null response when getting organizations");
+        }
     }
 }
