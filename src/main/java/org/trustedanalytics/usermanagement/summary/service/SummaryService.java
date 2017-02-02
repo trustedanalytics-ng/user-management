@@ -17,8 +17,9 @@ package org.trustedanalytics.usermanagement.summary.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.summary.model.OrganizationSummary;
 import org.trustedanalytics.usermanagement.summary.model.PlatformSummary;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
@@ -30,19 +31,19 @@ import java.util.stream.Collectors;
 public class SummaryService {
 
     private final UsersService usersService;
-    private final OrgResourceMock orgResourceMock;
+    private final OrganizationsStorage organizationsStorage;
 
     @Autowired
-    public SummaryService(UsersService usersService, OrgResourceMock orgResourceMock) {
+    public SummaryService(UsersService usersService, OrganizationsStorage organizationsStorage) {
         this.usersService = usersService;
-        this.orgResourceMock = orgResourceMock;
+        this.organizationsStorage = organizationsStorage;
     }
 
     public OrganizationSummary getOrganizationSummary(String orgGuid) {
         final OrganizationSummary summary = new OrganizationSummary();
+        final Org org = organizationsStorage.getOrganization(orgGuid).orElseThrow(() ->
+                new EntityNotFoundException(String.format("Organization with ID %s not found", orgGuid)));
 
-        // we assume that we have only one organization
-        final Org org = orgResourceMock.get();
         summary.setName(org.getName());
         summary.setGuid(org.getGuid());
         summary.setUsers(usersService.getOrgUsers(orgGuid));
@@ -51,10 +52,13 @@ public class SummaryService {
     }
 
     public PlatformSummary getPlatformSummary() {
-        // we assume that we have only one organization
-        final Collection<OrganizationSummary> summaries = orgResourceMock.getOrganizations().stream()
-                .map(org -> getOrganizationSummary(org.getGuid()))
-                .collect(Collectors.toList());
+        final Collection<OrganizationSummary> summaries =
+                organizationsStorage
+                        .getOrganizations()
+                        .stream()
+                        .map(Org::getGuid)
+                        .map(this::getOrganizationSummary)
+                        .collect(Collectors.toList());
         return new PlatformSummary(summaries);
     }
 }

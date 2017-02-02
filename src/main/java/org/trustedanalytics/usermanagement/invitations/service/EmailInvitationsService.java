@@ -26,7 +26,6 @@ import org.trustedanalytics.usermanagement.invitations.NoPendingInvitationFoundE
 import org.trustedanalytics.usermanagement.invitations.UserExistsException;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCode;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCodeService;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.users.rest.AuthGatewayOperations;
 
 import java.util.Optional;
@@ -55,9 +54,6 @@ public class EmailInvitationsService implements InvitationsService {
 
     @Autowired
     private AuthGatewayOperations authGatewayOperations;
-
-    @Autowired
-    private OrgResourceMock orgResourceMock;
 
     public EmailInvitationsService(SpringTemplateEngine templateEngine) {
         this.templateEngine = templateEngine;
@@ -99,9 +95,9 @@ public class EmailInvitationsService implements InvitationsService {
     }
 
     @Override
-    public Optional<String> createUser(String username, String password) {
+    public Optional<String> createUser(String username, String password, String orgId) {
         validateUsername(username);
-        return createAndRetrieveUser(username, password);
+        return createAndRetrieveUser(username, password, orgId);
     }
 
     @Override
@@ -125,11 +121,10 @@ public class EmailInvitationsService implements InvitationsService {
         accessInvitationsService.redeemAccessInvitations(email);
     }
 
-    private Optional<String> createAndRetrieveUser(String username, String password) {
+    private Optional<String> createAndRetrieveUser(String username, String password, String orgId) {
         return accessInvitationsService.getAccessInvitations(username)
                 .map(invitations -> {
                     final ScimUser user = uaaPrivilegedClient.createUser(username, password);
-                    final String orgId = orgResourceMock.get().getGuid();
                     authGatewayOperations.createUser(orgId, user.getId(), ex ->
                         // rollback adding user to UAA
                         uaaPrivilegedClient.deleteUser(user.getId()));

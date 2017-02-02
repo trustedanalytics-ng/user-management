@@ -47,8 +47,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
@@ -103,16 +103,15 @@ public class UaaUsersServiceTest {
         testUsersFromUaa = Arrays.asList(testUserFromUaa);
         existingOrganization = new Org("defaultorg", "the-only-org");
 
+        when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
+        when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
+
         sut = new UaaUsersService(uaaOperations, invitationService, accessInvitationsService, authGatewayOperations);
     }
 
     @Test
     public void getOrgUsers_uaaReturnsUsers_resultContainsAllUsersFromUaa() {
-        when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
-        when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
-
         Collection<User> result = sut.getOrgUsers(existingOrganization.getGuid());
-
         assertTrue(result.containsAll(testUsers));
     }
 
@@ -144,26 +143,37 @@ public class UaaUsersServiceTest {
 
     @Test
     public void deleteUserFromOrg_userExists_deleteUser() {
-        when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
-        when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
-
         sut.deleteUserFromOrg(testUser.getGuid(), orgId);
 
         verify(authGatewayOperations, times(1)).deleteUser(orgId, testUser.getGuid());
         verify(uaaOperations).deleteUser(testUser.getGuid());
     }
 
-    @Test(expected = EntityNotFoundException.class)
+    @Test
     public void deleteUserFromOrg_userDoesNotExist_throwEntityNotFound() {
-        when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
-        when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
+        String userId = "not-existing-user-id";
 
         try {
-            sut.deleteUserFromOrg("another-user-id", orgId);
+            sut.deleteUserFromOrg(userId, orgId);
+            fail("Delete not existing user should throw exception.");
         } catch (EntityNotFoundException e) {
-            assertEquals(e.getMessage(), "The user does not exist");
+            assertTrue(e.getMessage().contains(userId));
             verify(uaaOperations, never()).deleteUser(any());
-            throw e;
+        }
+    }
+
+    @Test
+    public void updateOrgUserRole_userDoesNotExist_throwEntityNotFound() {
+        when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
+        adminGroup.setMembers(Arrays.asList(new ScimGroupMember(testUser.getGuid())));
+        String userId = "not-existing-user-id";
+
+        try {
+            sut.updateOrgUserRole(userId, orgId, UserRole.USER);
+            fail("Update not existing user should throw exception.");
+        } catch (EntityNotFoundException e) {
+            assertTrue(e.getMessage().contains(userId));
+            verify(uaaOperations, never()).deleteUser(any());
         }
     }
 
@@ -191,6 +201,8 @@ public class UaaUsersServiceTest {
 
     @Test
     public void updateOrgUserRole_userRole_userNotPresentInAdminGroup_doNothing() {
+        when(uaaOperations.getUsers()).thenReturn(scimUserSearchResults);
+        when(scimUserSearchResults.getResources()).thenReturn(testUsersFromUaa);
         when(uaaOperations.getGroup("tap.admin")).thenReturn(Optional.of(adminGroup));
         adminGroup.setMembers(new ArrayList<>());
 

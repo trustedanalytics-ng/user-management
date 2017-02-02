@@ -21,8 +21,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.model.OrgPermission;
 import org.trustedanalytics.usermanagement.security.rest.AuthorizationController;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
@@ -54,7 +54,7 @@ public class AuthorizationControllerTest {
     private Authentication adminAuthentication;
 
     @Mock
-    private OrgResourceMock organizationResource;
+    private OrganizationsStorage organizationsStorage;
 
     @Before
     public void setup() {
@@ -62,9 +62,9 @@ public class AuthorizationControllerTest {
         when(detailsFinder.findUserRole(userAuthentication)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(adminAuthentication)).thenReturn(adminGuid);
         when(detailsFinder.findUserRole(adminAuthentication)).thenReturn(UserRole.ADMIN);
-        when(organizationResource.getOrganizations()).thenReturn(Arrays.asList(existingOrganization));
+        when(organizationsStorage.getOrganizations()).thenReturn(Arrays.asList(existingOrganization));
 
-        sut = new AuthorizationController(detailsFinder, organizationResource);
+        sut = new AuthorizationController(detailsFinder, organizationsStorage);
     }
 
     @Test

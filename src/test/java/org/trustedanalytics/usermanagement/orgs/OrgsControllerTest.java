@@ -23,13 +23,12 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.orgs.model.OrgNameRequest;
 import org.trustedanalytics.usermanagement.orgs.rest.OrgsController;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.AccessTokenDetails;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
-
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Arrays;
@@ -46,7 +45,7 @@ public class OrgsControllerTest {
     private Org existingOrganization = new Org(orgId, "the-only-org");
 
     @Mock
-    private OrgResourceMock organizationResource;
+    private OrganizationsStorage organizationResource;
 
     @Mock
     private Authentication userAuthentication;

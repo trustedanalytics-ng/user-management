@@ -104,10 +104,10 @@ public class UsersServiceConfig {
     }
 
     @Bean
-    protected UsersService priviledgedUsersService(UaaOperations uaaPrivilegedClient,
-                                                   InvitationsService invitationsService,
-                                                   AccessInvitationsService accessInvitationsService,
-                                                   AuthGatewayOperations authGatewayOperations) {
+    protected UsersService privilegedUsersService(UaaOperations uaaPrivilegedClient,
+                                                  InvitationsService invitationsService,
+                                                  AccessInvitationsService accessInvitationsService,
+                                                  AuthGatewayOperations authGatewayOperations) {
         return new UaaUsersService(
                 uaaPrivilegedClient,
                 invitationsService,

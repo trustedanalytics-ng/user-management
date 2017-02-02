@@ -35,6 +35,10 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+// TODO: missing multi-organization feature.
+// Currently Org ID is verified on REST controller level. Users are not bound to any organization, thus the org ID
+// is ignored on the service level.
+
 public class UaaUsersService implements UsersService {
 
     private final UaaOperations uaaClient;
@@ -71,12 +75,14 @@ public class UaaUsersService implements UsersService {
 
     @Override
     public void addOrgUser(UserRequest userRequest, String orgGuid, String currentUser) {
-        Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userRequest.getUsername());
+        String userToAddUsername = userRequest.getUsername();
+        Optional<UserIdNamePair> idNamePair = uaaClient.findUserIdByName(userToAddUsername);
         if(idNamePair.isPresent()) {
-            throw new UserExistsException("User already exists!");
+            throw new UserExistsException(String.format("User %s already exists", userToAddUsername));
         }
+
         UserRole role = Optional.ofNullable(userRequest.getRole()).orElse(UserRole.USER);
-        inviteUserToOrg(userRequest.getUsername(), currentUser, orgGuid, role);
+        inviteUserToOrg(userToAddUsername, currentUser, orgGuid, role);
     }
 
     private void inviteUserToOrg(String username, String currentUser, String orgGuid, UserRole role) {
@@ -89,15 +95,14 @@ public class UaaUsersService implements UsersService {
 
     @Override
     public void deleteUserFromOrg(String userGuid, String orgGuid) {
-        if (getOrgUsers(orgGuid).stream().noneMatch(x -> userGuid.equals(x.getGuid()))) {
-            throw new EntityNotFoundException("The user does not exist", null);
-        }
+        verifyUserBelongsToOrganization(userGuid, orgGuid);
         uaaClient.deleteUser(userGuid);
         authGatewayOperations.deleteUser(orgGuid, userGuid);
     }
 
     @Override
     public UserRole updateOrgUserRole(String userGuid, String orgGuid, UserRole role) {
+        verifyUserBelongsToOrganization(userGuid, orgGuid);
         ScimGroup adminGroup = getAdminGroup();
         if (isGroupMember(adminGroup, userGuid) && role.equals(UserRole.USER)) {
             uaaClient.removeUserFromGroup(adminGroup, userGuid);
@@ -126,5 +131,11 @@ public class UaaUsersService implements UsersService {
 
     private boolean isGroupMember(ScimGroup group, String userGuid) {
         return group.getMembers().stream().anyMatch(m -> m.getMemberId().equals(userGuid));
+    }
+
+    private void verifyUserBelongsToOrganization(String userId, String orgId) {
+        if (getOrgUsers(orgId).stream().noneMatch(x -> userId.equals(x.getGuid()))) {
+            throw new EntityNotFoundException(String.format("The user with ID %s does not exist", userId));
+        }
     }
 }

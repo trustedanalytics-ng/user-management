@@ -21,7 +21,7 @@ import java.util.Set;
 public interface InvitationsService {
     String sendInviteEmail(String email, String currentUser);
     String resendInviteEmail(String email, String currentUser);
-    Optional<String> createUser(String username, String password);
+    Optional<String> createUser(String username, String password, String orgId);
     boolean userExists(String username);
     Set<String> getPendingInvitationsEmails();
     void deleteInvitation(String email);

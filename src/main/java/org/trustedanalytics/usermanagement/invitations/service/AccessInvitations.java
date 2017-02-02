@@ -15,12 +15,11 @@
  */
 package org.trustedanalytics.usermanagement.invitations.service;
 
+import lombok.Getter;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.Getter;
 
 public class AccessInvitations {
 

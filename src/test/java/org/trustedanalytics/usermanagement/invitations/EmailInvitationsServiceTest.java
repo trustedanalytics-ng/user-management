@@ -40,7 +40,6 @@ import org.trustedanalytics.usermanagement.invitations.service.InvitationLinkGen
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.MessageService;
 import org.trustedanalytics.usermanagement.orgs.config.OrgConfig;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.storage.KeyValueStore;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.model.UserState;
@@ -59,11 +58,11 @@ import static org.mockito.Mockito.when;
 @ActiveProfiles("unit-test")
 public class EmailInvitationsServiceTest {
 
-    private static final String USER_ID = "00012345-2345-2345-2345-000000012345";
+    private static final String SAMPLE_USER_ID = "sample-user-id";
     private static final String SAMPLE_EMAIL_ADDRESS = "sampleuser@example.com";
     private static final String OTHER_SAMPLE_EMAIL_ADDRESS = "otheruser@example.com";
-    private static final String PASSWORD = "password";
-    private static final String TEST_USER_ID = "test-user-id";
+    private static final String SAMPLE_PASSWORD = "password";
+    private static final String SAMPLE_ORG_ID = "sample-org-id";
 
     @Autowired
     private InvitationsService sut;
@@ -74,9 +73,6 @@ public class EmailInvitationsServiceTest {
     @Autowired
     private AuthGatewayOperations authGatewayOperations;
 
-    @Autowired
-    private OrgResourceMock orgResourceMock;
-
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -84,15 +80,12 @@ public class EmailInvitationsServiceTest {
     @Profile("unit-test")
     public static class EmailInvitationsServiceTestConfiguration {
 
-        @Autowired
-        private OrgResourceMock orgResourceMock;
-
         @Bean
         public AccessInvitationsService accessInvitationsService() {
             final KeyValueStore<AccessInvitations> keyValueStore = mock(KeyValueStore.class);
             final AccessInvitationsService service =  new AccessInvitationsService(keyValueStore);
             AccessInvitations accessInvitations = new AccessInvitations();
-            accessInvitations.addOrgAccessInvitation(orgResourceMock.get().getGuid(), UserRole.USER);
+            accessInvitations.addOrgAccessInvitation(SAMPLE_ORG_ID, UserRole.USER);
             when(keyValueStore.get(SAMPLE_EMAIL_ADDRESS)).thenReturn(accessInvitations);
             return service;
         }
@@ -106,17 +99,20 @@ public class EmailInvitationsServiceTest {
         public UaaOperations uaaPrivilegedClient() {
             final UaaOperations uaaOperations = mock(UaaOperations.class);
             when(uaaOperations.findUserIdByName(SAMPLE_EMAIL_ADDRESS)).thenReturn(Optional.<UserIdNamePair>empty());
-            when(uaaOperations.findUserIdByName(OTHER_SAMPLE_EMAIL_ADDRESS)).thenReturn(Optional.of(UserIdNamePair.of(TEST_USER_ID, OTHER_SAMPLE_EMAIL_ADDRESS)));
-            when(uaaOperations.createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD)).thenReturn(new ScimUser(USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
-            when(uaaOperations.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, PASSWORD)).thenReturn(new ScimUser(USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
+            when(uaaOperations.findUserIdByName(OTHER_SAMPLE_EMAIL_ADDRESS))
+                    .thenReturn(Optional.of(UserIdNamePair.of(SAMPLE_USER_ID, OTHER_SAMPLE_EMAIL_ADDRESS)));
+            when(uaaOperations.createUser(SAMPLE_EMAIL_ADDRESS, SAMPLE_PASSWORD))
+                    .thenReturn(new ScimUser(SAMPLE_USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
+            when(uaaOperations.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, SAMPLE_PASSWORD))
+                    .thenReturn(new ScimUser(SAMPLE_USER_ID, SAMPLE_EMAIL_ADDRESS, null, null));
             return uaaOperations;
         }
 
         @Bean
         public AuthGatewayOperations authGatewayOperations() {
             final AuthGatewayOperations authGatewayOperations = mock(AuthGatewayOperations.class);
-            final String orgId = orgResourceMock.get().getGuid();
-            when(authGatewayOperations.createUser(orgId, USER_ID, mock(Fallback.class))).thenReturn(new UserState(SAMPLE_EMAIL_ADDRESS, USER_ID, true));
+            when(authGatewayOperations.createUser(SAMPLE_ORG_ID, SAMPLE_USER_ID, mock(Fallback.class)))
+                    .thenReturn(new UserState(SAMPLE_EMAIL_ADDRESS, SAMPLE_USER_ID, true));
             return authGatewayOperations;
         }
 
@@ -149,19 +145,19 @@ public class EmailInvitationsServiceTest {
     @Test
     public void createUser_userDoesNotExist_sendRequestToUaaAndAuthGateway() {
         // when
-        final Optional<String> userGuid = sut.createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
+        final Optional<String> userGuid = sut.createUser(SAMPLE_EMAIL_ADDRESS, SAMPLE_PASSWORD, SAMPLE_ORG_ID);
 
         // then
         final InOrder inOrder = inOrder(uaaPrivilegedClient, authGatewayOperations);
 
-        inOrder.verify(uaaPrivilegedClient).createUser(SAMPLE_EMAIL_ADDRESS, PASSWORD);
-        inOrder.verify(authGatewayOperations).createUser(eq(orgResourceMock.get().getGuid()), eq(userGuid.get()), any());
+        inOrder.verify(uaaPrivilegedClient).createUser(SAMPLE_EMAIL_ADDRESS, SAMPLE_PASSWORD);
+        inOrder.verify(authGatewayOperations).createUser(eq(SAMPLE_ORG_ID), eq(userGuid.get()), any());
     }
 
     @Test
     public void createUser_userExists_throwUserExistException() {
         exception.expect(UserExistsException.class);
 
-        sut.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, PASSWORD);
+        sut.createUser(OTHER_SAMPLE_EMAIL_ADDRESS, SAMPLE_PASSWORD, SAMPLE_ORG_ID);
     }
 }

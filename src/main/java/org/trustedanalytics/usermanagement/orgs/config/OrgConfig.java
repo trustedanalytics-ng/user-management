@@ -18,7 +18,8 @@ package org.trustedanalytics.usermanagement.orgs.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
+import org.trustedanalytics.usermanagement.orgs.service.SingleOrganizationStorage;
 
 @Configuration
 public class OrgConfig {
@@ -28,8 +29,9 @@ public class OrgConfig {
 
     @Value("${core.org.name}")
     private String orgName;
+
     @Bean
-    public OrgResourceMock orgResourceMock() {
-        return new OrgResourceMock(orgId, orgName);
+    public OrganizationsStorage organizationsStorage() {
+        return new SingleOrganizationStorage(orgId, orgName);
     }
 }

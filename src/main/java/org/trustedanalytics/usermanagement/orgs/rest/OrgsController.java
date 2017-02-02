@@ -25,14 +25,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.orgs.model.OrgNameRequest;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Collection;
-import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
@@ -45,12 +44,12 @@ public class OrgsController {
     public static final String GENERAL_ORGS_URL = "/rest/orgs";
 
     private final UserDetailsFinder detailsFinder;
-    private final OrgResourceMock orgResourceMock;
+    private final OrganizationsStorage organizationsStorage;
 
     @Autowired
-    public OrgsController(UserDetailsFinder detailsFinder, OrgResourceMock orgResourceMock) {
+    public OrgsController(UserDetailsFinder detailsFinder, OrganizationsStorage organizationsStorage) {
         this.detailsFinder = detailsFinder;
-        this.orgResourceMock = orgResourceMock;
+        this.organizationsStorage = organizationsStorage;
     }
 
     @ApiOperation(
@@ -63,7 +62,7 @@ public class OrgsController {
     @RequestMapping(value = GENERAL_ORGS_URL, method = GET,
         produces = APPLICATION_JSON_VALUE)
     public Collection<Org> getOrgs(@ApiParam(hidden = true) Authentication auth) {
-        return orgResourceMock.getOrganizations();
+        return organizationsStorage.getOrganizations();
     }
 
     @ApiOperation(value = "Renaming organization is not supported in this application version")

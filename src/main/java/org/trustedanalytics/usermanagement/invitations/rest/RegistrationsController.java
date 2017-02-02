@@ -34,6 +34,8 @@ import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCode
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCodeService;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
+import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.users.UserPasswordValidator;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
@@ -45,19 +47,22 @@ public class RegistrationsController {
     private final InvitationsService invitationsService;
     private final AccessInvitationsService accessInvitationsService;
     private final UserPasswordValidator userPasswordValidator;
-    private final UsersService priviledgedUsersService;
+    private final UsersService privilegedUsersService;
+    private final OrganizationsStorage organizationsStorage;
 
     @Autowired
     public RegistrationsController(SecurityCodeService securityCodeService,
                                    InvitationsService invitationsService,
                                    AccessInvitationsService accessInvitationsService,
                                    UserPasswordValidator userPasswordValidator,
-                                   UsersService priviledgedUsersService) {
+                                   UsersService privilegedUsersService,
+                                   OrganizationsStorage organizationsStorage) {
         this.securityCodeService = securityCodeService;
         this.invitationsService = invitationsService;
         this.accessInvitationsService = accessInvitationsService;
         this.userPasswordValidator = userPasswordValidator;
-        this.priviledgedUsersService = priviledgedUsersService;
+        this.privilegedUsersService = privilegedUsersService;
+        this.organizationsStorage = organizationsStorage;
     }
 
     @ApiOperation(
@@ -74,7 +79,11 @@ public class RegistrationsController {
     })
     @RequestMapping(method = RequestMethod.POST)
     public Registration addUser(@RequestBody Registration newUser,
-                                     @RequestParam(value = "code", required = false) String code) {
+                                @RequestParam(value = "code", required = false) String code) {
+
+        // TODO: missing multi-organization feature. User should have eligibility to create organization.
+        Org organizationInvitedTo = organizationsStorage.getOrganizations().iterator().next();
+
         if (Strings.isNullOrEmpty(code)) {
             throw new InvalidSecurityCodeException("Security code empty or null");
         }
@@ -82,11 +91,11 @@ public class RegistrationsController {
         userPasswordValidator.validate(newUser.getPassword());
         String email = sc.getEmail();
         invitationsService
-            .createUser(email, newUser.getPassword())
+            .createUser(email, newUser.getPassword(), organizationInvitedTo.getGuid())
             .ifPresent(uuid -> {
-                newUser.setUserGuid(uuid.toString());
-                priviledgedUsersService.updateUserRolesInOrgs(email, uuid);
-         });
+                newUser.setUserGuid(uuid);
+                privilegedUsersService.updateUserRolesInOrgs(email, uuid);
+            });
 
         securityCodeService.redeem(sc);
         accessInvitationsService.redeemAccessInvitations(email);
@@ -111,5 +120,4 @@ public class RegistrationsController {
             throw new EntityNotFoundException("", e);
         }
     }
-
 }

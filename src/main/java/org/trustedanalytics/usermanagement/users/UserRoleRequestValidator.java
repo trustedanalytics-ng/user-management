@@ -30,7 +30,7 @@ public class UserRoleRequestValidator {
         } catch (NullPointerException e) {
             throw new WrongUserRolesException("You cannot perform request without specified role.", e);
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Role that you specyfied is not correct.", e);
+            throw new IllegalArgumentException("Role that you specified is not correct.", e);
         }
     }
 }

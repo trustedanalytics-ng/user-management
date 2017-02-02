@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.trustedanalytics.uaa.UaaOperations;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -35,16 +35,16 @@ public class MetricsCollector {
     private final int metricsRefreshDelay;
     private final Gauge counts;
     private final UaaOperations uaaPrivilegedClient;
-    private final OrgResourceMock orgResourceMock;
+    private final OrganizationsStorage organizationsStorage;
 
     private ThreadPoolTaskScheduler scheduler;
 
     public MetricsCollector(int metricsRefreshDelay, Gauge counts, UaaOperations uaaPrivilegedClient,
-                            OrgResourceMock orgResourceMock) {
+                            OrganizationsStorage organizationsStorage) {
         this.metricsRefreshDelay = metricsRefreshDelay;
         this.counts = counts;
         this.uaaPrivilegedClient = uaaPrivilegedClient;
-        this.orgResourceMock = orgResourceMock;
+        this.organizationsStorage = organizationsStorage;
     }
 
     @PostConstruct
@@ -77,12 +77,7 @@ public class MetricsCollector {
     }
 
     private void collectOrganizations() {
-        Optional<Integer> organizationsCount = Optional.ofNullable(orgResourceMock.getOrganizations())
-                .map(Collection::size);
-        if(organizationsCount.isPresent()) {
-            counts.labels("organizations").set(organizationsCount.get());
-        } else {
-            LOGGER.warn("Unable to set organizations metric: null response when getting organizations");
-        }
+        int organizationsCount = organizationsStorage.getOrganizations().size();
+        counts.labels("organizations").set(organizationsCount);
     }
 }

@@ -16,7 +16,9 @@
 package org.trustedanalytics.usermanagement.security.rest;
 
 import com.google.common.base.Strings;
-
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +26,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.model.OrgPermission;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
@@ -34,10 +36,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 import static java.util.stream.Collectors.toList;
 import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -48,12 +46,12 @@ public class AuthorizationController {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuthorizationController.class);
 
     private final UserDetailsFinder detailsFinder;
-    private final OrgResourceMock orgResourceMock;
+    private final OrganizationsStorage organizationsStorage;
 
     @Autowired
-    public AuthorizationController(UserDetailsFinder detailsFinder, OrgResourceMock orgResourceMock) {
+    public AuthorizationController(UserDetailsFinder detailsFinder, OrganizationsStorage organizationsStorage) {
         this.detailsFinder = detailsFinder;
-        this.orgResourceMock = orgResourceMock;
+        this.organizationsStorage = organizationsStorage;
     }
 
     @ApiOperation(
@@ -103,10 +101,10 @@ public class AuthorizationController {
      * @return permissions
      */
     private Collection<OrgPermission> resolveAdminPermissions(Collection<String> orgs) {
+        Collection<Org> allOrganizations = organizationsStorage.getOrganizations();
 
-        // TODO: this collection will be retreived from external resource
-        Collection<Org> allOrganizations = orgResourceMock.getOrganizations();
-
+        // TODO: in a single organization mode there is no source of user role in a specific organization.
+        // We return a global ADMIN permission for "all" organizations (single organization in this case)
         return allOrganizations.stream()
             .map(org -> new OrgPermission(org, true, true))
             .collect(toList());
@@ -120,9 +118,10 @@ public class AuthorizationController {
      * @return permissions
      */
     private Collection<OrgPermission> resolveUserPermissions(String user, Collection<String> orgs) {
+        Collection<Org> allOrganizations = organizationsStorage.getOrganizations();
 
-        // TODO: user permissions in organization will be retreived from external resource
-        Collection<Org> allOrganizations = orgResourceMock.getOrganizations();
+        // TODO: in a single organization mode there is no source of user role in a specific organization.
+        // We return a global USER permission for "all" organizations (single organization in this case)
         return allOrganizations.stream()
                 .map(org -> new OrgPermission(org, true, false))
                 .collect(toList());

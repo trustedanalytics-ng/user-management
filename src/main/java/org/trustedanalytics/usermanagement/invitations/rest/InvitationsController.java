@@ -16,6 +16,10 @@
 package org.trustedanalytics.usermanagement.invitations.rest;
 
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,17 +38,13 @@ import org.trustedanalytics.usermanagement.invitations.model.Invitation;
 import org.trustedanalytics.usermanagement.invitations.model.InvitationErrorDescription;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.Set;
-
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 
 @RestController
 @ControllerAdvice
@@ -52,33 +52,28 @@ import io.swagger.annotations.ApiResponses;
 public class InvitationsController {
 
     public static final String IS_ADMIN_CONDITION = "hasRole('tap.admin')";
-
     public static final String RESEND_INVITATION_URL = "/{email}/resend";
 
     //:.+ is required, otherwise Spring truncates value with @PathVariable up to last dot
     public static final String DELETE_INVITATION_URL = "/{email:.+}";
 
     private final InvitationsService invitationsService;
-
     private final AccessInvitationsService accessInvitationsService;
-
     private final UserDetailsFinder detailsFinder;
-
     private final BlacklistEmailValidator emailValidator;
-
-    private final OrgResourceMock orgResourceMock;
+    private final OrganizationsStorage organizationsStorage;
 
     @Autowired
     public InvitationsController(InvitationsService invitationsService,
                                  UserDetailsFinder detailsFinder,
                                  AccessInvitationsService accessInvitationsService,
                                  BlacklistEmailValidator emailValidator,
-                                 OrgResourceMock orgResourceMock){
+                                 OrganizationsStorage organizationsStorage){
         this.invitationsService = invitationsService;
         this.detailsFinder = detailsFinder;
         this.accessInvitationsService = accessInvitationsService;
         this.emailValidator = emailValidator;
-        this.orgResourceMock = orgResourceMock;
+        this.organizationsStorage = organizationsStorage;
     }
 
     @ApiOperation(
@@ -96,6 +91,9 @@ public class InvitationsController {
     public InvitationErrorDescription addInvitation(@RequestBody Invitation invitation,
                                                @ApiParam(hidden = true) Authentication authentication) {
 
+        // TODO: missing multi-organization feature. User should have eligibility to create organization.
+        Org organiztionInvitedTo = organizationsStorage.getOrganizations().iterator().next();
+
         String userToInviteEmail = invitation.getEmail();
         emailValidator.validate(userToInviteEmail);
         if (invitationsService.userExists(userToInviteEmail)) {
@@ -110,7 +108,7 @@ public class InvitationsController {
                     String currentUserName = detailsFinder.findUserName(authentication);
                     String invitationLink = invitationsService.sendInviteEmail(userToInviteEmail, currentUserName);
                     accessInvitationsService.createOrUpdateInvitation(userToInviteEmail,
-                            ui -> ui.addOrgAccessInvitation(orgResourceMock.get().getGuid(), UserRole.USER));
+                            ui -> ui.addOrgAccessInvitation(organiztionInvitedTo.getGuid(), UserRole.USER));
                     return new InvitationErrorDescription(InvitationErrorDescription.State.NEW, invitationLink);
                 });
     }

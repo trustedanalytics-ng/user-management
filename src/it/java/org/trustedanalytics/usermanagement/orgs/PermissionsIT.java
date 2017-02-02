@@ -30,7 +30,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.trustedanalytics.auth.AuthTokenRetriever;
 import org.trustedanalytics.usermanagement.Application;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 import org.trustedanalytics.usermanagement.security.model.OrgPermission;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
@@ -69,15 +68,12 @@ public class PermissionsIT {
     @Autowired
     private UserDetailsFinder detailsFinder;
 
-    @Autowired
-    private OrgResourceMock orgResourceMock;
-
     private Org expectedOrg;
 
     @Before
     public void setUp() {
         when(tokenRetriever.getAuthToken(any(Authentication.class))).thenReturn(TOKEN);
-        expectedOrg = orgResourceMock.get();
+        expectedOrg = new Org("defaultorg", "default");
     }
 
     @Test

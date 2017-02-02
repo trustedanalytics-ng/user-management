@@ -20,7 +20,6 @@ import org.trustedanalytics.usermanagement.users.model.UserRequest;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 
 import java.util.Collection;
-import java.util.Optional;
 
 public interface UsersService {
     Collection<User> getOrgUsers(String orgGuid);

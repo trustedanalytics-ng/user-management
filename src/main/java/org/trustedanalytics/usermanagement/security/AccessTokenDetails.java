@@ -18,8 +18,6 @@ package org.trustedanalytics.usermanagement.security;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.UUID;
-
 @AllArgsConstructor
 public class AccessTokenDetails {
 

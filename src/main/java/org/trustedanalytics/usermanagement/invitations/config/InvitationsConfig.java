@@ -24,12 +24,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.thymeleaf.spring4.SpringTemplateEngine;
 import org.trustedanalytics.usermanagement.invitations.service.AngularInvitationLinkGenerator;
-import org.trustedanalytics.usermanagement.invitations.service.InvitationLinkGenerator;
 import org.trustedanalytics.usermanagement.invitations.service.EmailInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.EmailService;
+import org.trustedanalytics.usermanagement.invitations.service.InvitationLinkGenerator;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
-import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;

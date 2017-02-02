@@ -35,12 +35,16 @@ import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCode
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 import org.trustedanalytics.usermanagement.invitations.service.InvitationsService;
+import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.users.EmptyPasswordException;
 import org.trustedanalytics.usermanagement.users.TooShortPasswordException;
 import org.trustedanalytics.usermanagement.users.UserPasswordValidator;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.service.UsersService;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -55,7 +59,6 @@ public class RegistrationsControllerTest {
 
     private static final String USER_EMAIL = "email@example.com";
     private static final String SECURITY_CODE = "code";
-    private static final String CORE_GUID = "defaultorg";
 
     private RegistrationsController sut;
 
@@ -66,17 +69,24 @@ public class RegistrationsControllerTest {
     private InvitationsService invitationsService;
 
     @Mock
-    private UsersService priviledgedUsersService;
+    private UsersService privilegedUsersService;
 
     @Mock
     private AccessInvitationsService accessInvitationsService;
+
+    @Mock
+    private OrganizationsStorage organizationsStorage;
 
     private UserPasswordValidator passwordValidator = new UserPasswordValidator();
 
     @Before
     public void setUp() throws Exception {
+        Collection<Org> organizations = organizations();
+        when(organizationsStorage.getOrganizations()).thenReturn(organizations);
+
         sut = new RegistrationsController(securityCodeService, invitationsService,
-                                            accessInvitationsService, passwordValidator, priviledgedUsersService);
+                accessInvitationsService, passwordValidator,
+                privilegedUsersService, organizationsStorage);
     }
 
     @Test(expected = InvalidSecurityCodeException.class)
@@ -123,9 +133,8 @@ public class RegistrationsControllerTest {
         Registration registration = new Registration();
         registration.setPassword("123456");
 
-
         doThrow(new UserExistsException("")).when(invitationsService).createUser(
-                Matchers.anyString(), Matchers.anyString());
+                Matchers.anyString(), Matchers.anyString(), Matchers.anyString());
 
         sut.addUser(registration, SECURITY_CODE);
     }
@@ -137,7 +146,7 @@ public class RegistrationsControllerTest {
         Registration registration = new Registration();
         registration.setPassword("123456");
         doThrow(new OrgExistsException("")).when(invitationsService).createUser(
-                Matchers.anyString(), Matchers.anyString());
+                Matchers.anyString(), Matchers.anyString(), Matchers.anyString());
 
         sut.addUser(registration, SECURITY_CODE);
     }
@@ -149,7 +158,7 @@ public class RegistrationsControllerTest {
         Registration registration = new Registration();
         registration.setPassword("123456");
         doThrow(new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR)).when(invitationsService).createUser(
-                Matchers.anyString(), Matchers.anyString());
+                Matchers.anyString(), Matchers.anyString(), Matchers.anyString());
 
         sut.addUser(registration, SECURITY_CODE);
     }
@@ -161,7 +170,7 @@ public class RegistrationsControllerTest {
         Registration registration = new Registration();
         registration.setPassword("123456");
         doThrow(new InvalidOrganizationNameException("")).when(invitationsService).createUser(
-                Matchers.anyString(), Matchers.anyString());
+                Matchers.anyString(), Matchers.anyString(), Matchers.anyString());
 
         sut.addUser(registration, SECURITY_CODE);
     }
@@ -173,10 +182,12 @@ public class RegistrationsControllerTest {
         Registration registration = new Registration();
         String userPassword = "123456";
         String userGuid = "test-user-id";
-        when(invitationsService.createUser(USER_EMAIL, userPassword)).thenReturn(Optional.of(userGuid));
+        Org org = organization();
+        when(invitationsService.createUser(USER_EMAIL, userPassword, org.getGuid()))
+                .thenReturn(Optional.of(userGuid));
 
         AccessInvitations accessInvitations = new AccessInvitations();
-        accessInvitations.getOrgAccessInvitations().put(CORE_GUID, UserRole.ADMIN);
+        accessInvitations.getOrgAccessInvitations().put(org.getGuid(), UserRole.ADMIN);
         when(accessInvitationsService
                 .getAccessInvitations(USER_EMAIL)).thenReturn(Optional.of(accessInvitations));
         registration.setPassword(userPassword);
@@ -206,4 +217,12 @@ public class RegistrationsControllerTest {
         sut.getInvitation("");
     }
 
+    private Org organization() {
+        return new Org("sample-organization-id", "sample-organization-name");
+    }
+
+    private Collection<Org> organizations() {
+        Org org = organization();
+        return Collections.singleton(org);
+    }
 }

@@ -23,9 +23,11 @@ import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
+import org.trustedanalytics.usermanagement.orgs.model.Org;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.AccessTokenDetails;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
-import org.trustedanalytics.usermanagement.users.model.User;
 import org.trustedanalytics.usermanagement.users.model.UserRequest;
 import org.trustedanalytics.usermanagement.users.model.UserRole;
 import org.trustedanalytics.usermanagement.users.model.UserRolesRequest;
@@ -34,7 +36,6 @@ import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Optional;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,30 +47,49 @@ public class UsersControllerTest {
 
     @Mock
     private UsersService usersService;
+
     @Mock
     UsersService privilegedUsersService;
+
+    @Mock
+    OrganizationsStorage organizationsStorage;
+
     @Mock
     UserDetailsFinder detailsFinder;
+
     @Mock
     private Authentication userAuthentication;
+
     @Mock
     private BlacklistEmailValidator emailValidator;
 
     private final String orgId = "defaultorg";
+    private final String orgName = "test-org-name";
     private final String userId = "test-user";
 
     @Before
     public void setup() {
-        sut = new UsersController(usersService, privilegedUsersService, detailsFinder, emailValidator);
+        sut = new UsersController(usersService, privilegedUsersService, organizationsStorage,
+                detailsFinder, emailValidator);
         AccessTokenDetails details = new AccessTokenDetails(userId);
         when(userAuthentication.getDetails()).thenReturn(details);
         req = new UserRequest();
     }
 
+    @Test(expected = EntityNotFoundException.class)
+    public void getOrgUsers_orgDoesNotExist_throwEntityNotFound() {
+        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.<Org>empty());
+
+        sut.getOrgUsers(orgId, auth);
+    }
+
     @Test
-    public void getOrgUsers_ByNonManager_PriviledgedServiceNotUsed() {
+    public void getOrgUsers_ByNonManager_PrivilegedServiceNotUsed() {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.getOrgUsers(orgId, auth);
 
@@ -79,9 +99,10 @@ public class UsersControllerTest {
     }
 
     @Test
-    public void getOrgUsers_ByManager_PriviledgedServiceUsed() {
+    public void getOrgUsers_ByManager_PrivilegedServiceUsed() {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.getOrgUsers(orgId, auth);
 
@@ -90,12 +111,23 @@ public class UsersControllerTest {
         verify(privilegedUsersService, times(1)).getOrgUsers(orgId);
     }
 
+    @Test(expected = EntityNotFoundException.class)
+    public void createOrgUser_orgDoesNotExist_throwEntityNotFound() {
+        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.<Org>empty());
+        UserRequest userRequest = new UserRequest(userId, UserRole.USER);
+
+        sut.createOrgUser(userRequest, orgId, auth);
+    }
+
     @Test
-    public void createOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
+    public void createOrgUser_ByNonManager_PrivilegedServiceNotUsed() {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
         when(detailsFinder.findUserName(auth)).thenReturn("admin_test");
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.createOrgUser(req, orgId, auth);
 
@@ -104,12 +136,23 @@ public class UsersControllerTest {
         verify(privilegedUsersService, times(0)).addOrgUser(req, orgId, "admin_test");
     }
 
+    @Test(expected = EntityNotFoundException.class)
+    public void deleteOrgUser_orgDoesNotExist_throwEntityNotFound() {
+        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
+        when(detailsFinder.findUserId(auth)).thenReturn("user-performing-request-id");
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.<Org>empty());
+
+        sut.deleteUserFromOrg(orgId, userId, auth);
+    }
+
     @Test
-    public void deleteOrgUser_ByNonManager_PriviledgedServiceNotUsed() {
+    public void deleteOrgUser_ByNonManager_PrivilegedServiceNotUsed() {
         String anotherUserId = "another-user";
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.USER);
         when(detailsFinder.findUserId(auth)).thenReturn(anotherUserId);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.deleteUserFromOrg(orgId, userId, auth);
 
@@ -123,8 +166,21 @@ public class UsersControllerTest {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.deleteUserFromOrg(orgId, userId, auth);
+    }
+
+    @Test(expected = EntityNotFoundException.class)
+    public void updateOrgUser_orgDoesNotExist_throwEntityNotFound() {
+        OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
+        when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
+        when(detailsFinder.findUserId(auth)).thenReturn("user-performing-request-id");
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.<Org>empty());
+        UserRolesRequest userRolesRequest = new UserRolesRequest();
+        userRolesRequest.setRole(UserRole.USER);
+
+        sut.updateOrgUserRole(userRolesRequest, orgId, userId, auth);
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -134,8 +190,8 @@ public class UsersControllerTest {
         OAuth2Authentication auth = new OAuth2Authentication(null, userAuthentication);
         when(detailsFinder.findUserRole(auth)).thenReturn(UserRole.ADMIN);
         when(detailsFinder.findUserId(auth)).thenReturn(userId);
+        when(organizationsStorage.getOrganization(orgId)).thenReturn(Optional.of(new Org(orgId, orgName)));
 
         sut.updateOrgUserRole(request, orgId, userId, auth);
     }
-
 }

@@ -21,7 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.trustedanalytics.uaa.UaaOperations;
-import org.trustedanalytics.usermanagement.orgs.mocks.OrgResourceMock;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 
 @Configuration
 @EnablePrometheusEndpoint
@@ -43,8 +43,9 @@ public class MetricsConfiguration {
     }
 
     @Bean
-    public MetricsCollector getMetricsCollector(Gauge counts, UaaOperations uaaPrivilegedClient, OrgResourceMock orgResourceMock) {
-        return new MetricsCollector(metricsRefreshDelay, counts, uaaPrivilegedClient, orgResourceMock);
+    public MetricsCollector getMetricsCollector(Gauge counts, UaaOperations uaaPrivilegedClient,
+                                                OrganizationsStorage organizationsStorage) {
+        return new MetricsCollector(metricsRefreshDelay, counts, uaaPrivilegedClient, organizationsStorage);
     }
 }
 

@@ -30,9 +30,9 @@ import org.trustedanalytics.redis.encryption.EncryptionService;
 import org.trustedanalytics.redis.encryption.HashService;
 import org.trustedanalytics.redis.encryption.serializer.HashedStringRedisSerializer;
 import org.trustedanalytics.redis.encryption.serializer.SecureJacksonJsonRedisSerializer;
-import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCode;
 import org.trustedanalytics.usermanagement.invitations.securitycode.SecurityCodeService;
+import org.trustedanalytics.usermanagement.invitations.service.AccessInvitations;
 import org.trustedanalytics.usermanagement.invitations.service.AccessInvitationsService;
 
 public class StorageConfig {

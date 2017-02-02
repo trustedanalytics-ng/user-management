@@ -15,6 +15,10 @@
  */
 package org.trustedanalytics.usermanagement.users.rest;
 
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -22,6 +26,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.trustedanalytics.usermanagement.common.EntityNotFoundException;
+import org.trustedanalytics.usermanagement.orgs.service.OrganizationsStorage;
 import org.trustedanalytics.usermanagement.security.service.UserDetailsFinder;
 import org.trustedanalytics.usermanagement.users.BlacklistEmailValidator;
 import org.trustedanalytics.usermanagement.users.UserRoleRequestValidator;
@@ -33,15 +39,8 @@ import org.trustedanalytics.usermanagement.users.service.UsersService;
 
 import java.util.Collection;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static org.springframework.web.bind.annotation.RequestMethod.DELETE;
-import static org.springframework.web.bind.annotation.RequestMethod.GET;
-import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 @RestController
 public class UsersController {
@@ -49,22 +48,25 @@ public class UsersController {
     public static final String ORG_USERS_URL = "/rest/orgs/{org}/users";
 
     private final UsersService usersService;
-    private final UsersService priviledgedUsersService;
+    private final UsersService privilegedUsersService;
+    private final OrganizationsStorage organizationsStorage;
     private final UserDetailsFinder detailsFinder;
     private final BlacklistEmailValidator emailValidator;
 
     @Autowired
-    public UsersController(UsersService usersService, UsersService priviledgedUsersService,
-        UserDetailsFinder detailsFinder, BlacklistEmailValidator emailValidator) {
+    public UsersController(UsersService usersService, UsersService privilegedUsersService,
+                           OrganizationsStorage organizationsStorage, UserDetailsFinder detailsFinder,
+                           BlacklistEmailValidator emailValidator) {
         this.usersService = usersService;
-        this.priviledgedUsersService = priviledgedUsersService;
+        this.privilegedUsersService = privilegedUsersService;
+        this.organizationsStorage = organizationsStorage;
         this.detailsFinder = detailsFinder;
         this.emailValidator = emailValidator;
     }
 
     private UsersService determinePriviledgeLevel(Authentication auth) {
         if (detailsFinder.findUserRole(auth).equals(UserRole.ADMIN)) {
-            return priviledgedUsersService;
+            return privilegedUsersService;
         }
         return usersService;
     }
@@ -81,6 +83,7 @@ public class UsersController {
     })
     @RequestMapping(value = ORG_USERS_URL, method = GET, produces = APPLICATION_JSON_VALUE)
     public Collection<User> getOrgUsers(@PathVariable String org, @ApiParam(hidden = true) Authentication auth) {
+        verifyOrganizationExists(org);
         return determinePriviledgeLevel(auth).getOrgUsers(org);
     }
 
@@ -99,9 +102,10 @@ public class UsersController {
             produces = APPLICATION_JSON_VALUE, consumes = APPLICATION_JSON_VALUE)
     public void createOrgUser(@RequestBody UserRequest userRequest, @PathVariable String org,
                               @ApiParam(hidden = true) Authentication auth) {
-        String userPerformingRequestGuid = detailsFinder.findUserName(auth);
         emailValidator.validate(userRequest.getUsername());
-        determinePriviledgeLevel(auth).addOrgUser(userRequest, org, userPerformingRequestGuid );
+        verifyOrganizationExists(org);
+        String userPerformingRequestGuid = detailsFinder.findUserName(auth);
+        determinePriviledgeLevel(auth).addOrgUser(userRequest, org, userPerformingRequestGuid);
     }
 
     @ApiOperation(
@@ -121,6 +125,7 @@ public class UsersController {
                                          @PathVariable String user, @ApiParam(hidden = true) Authentication auth) {
         UserRoleRequestValidator.validate(userRolesRequest);
         String userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        verifyOrganizationExists(org);
         denyOperationsOnYourself(userPerformingRequestGuid, user);
         return determinePriviledgeLevel(auth)
                 .updateOrgUserRole(user, org, userRolesRequest.getRole());
@@ -140,6 +145,7 @@ public class UsersController {
     public void deleteUserFromOrg(@PathVariable String org, @PathVariable String user,
                                   @ApiParam(hidden = true) Authentication auth) {
         String userPerformingRequestGuid = detailsFinder.findUserId(auth);
+        verifyOrganizationExists(org);
         denyOperationsOnYourself(userPerformingRequestGuid, user);
         determinePriviledgeLevel(auth).deleteUserFromOrg(user, org);
     }
@@ -149,4 +155,10 @@ public class UsersController {
             throw new AccessDeniedException("You cannot perform request on yourself.");
         }
     }
+
+  private void verifyOrganizationExists(String orgId) {
+    organizationsStorage.getOrganization(orgId)
+        .orElseThrow(() -> new EntityNotFoundException
+                (String.format("Organization with ID %s does not exist", orgId)));
+  }
 }

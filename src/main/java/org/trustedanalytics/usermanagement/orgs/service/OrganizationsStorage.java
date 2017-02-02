@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2015 Intel Corporation 
+ *  Copyright (c) 2016 Intel Corporation 
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,34 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-package org.trustedanalytics.usermanagement.orgs.mocks;
-
-import com.google.common.collect.ImmutableList;
+package org.trustedanalytics.usermanagement.orgs.service;
 
 import org.trustedanalytics.usermanagement.orgs.model.Org;
 
 import java.util.Collection;
+import java.util.Optional;
 
-import static java.util.Collections.singleton;
+public interface OrganizationsStorage {
 
-// TODO: remove this class after integration with TAP NG
-public class OrgResourceMock {
-
-    private final Org org;
-
-    private final Collection<Org> orgList;
-
-    public OrgResourceMock(String id, String name) {
-        org = new Org(id, name);
-        orgList = singleton(org);
-    }
-
-    public Collection<Org> getOrganizations() {
-        return ImmutableList.copyOf(orgList);
-    }
-
-    public Org get() {
-        return org;
-    }
+    Collection<Org> getOrganizations(); // TODO: add throws Exception
+    Optional<Org> getOrganization(String orgId); // TODO: add throws Exception
 }
